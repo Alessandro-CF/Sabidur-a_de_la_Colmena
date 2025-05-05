@@ -6,11 +6,15 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Model;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
+
+    protected $table = 'users';
+    protected $primaryKey = 'id_usuario';
 
     /**
      * The attributes that are mass assignable.
@@ -44,5 +48,25 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function articulos()
+    {
+        return $this->hasMany(Articulo::class, 'id_autor');
+    }
+
+    public function pedidos()
+    {
+        return $this->hasMany(Pedido::class, 'id_usuario');
+    }
+
+    public function consultas()
+    {
+        return $this->hasMany(Consulta::class, 'id_usuario');
+    }
+
+    public function asesorias()
+    {
+        return $this->hasMany(Asesoria::class, 'id_usuario');
     }
 }
