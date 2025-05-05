@@ -60,6 +60,6 @@ class CategoriaArticuloController extends Controller
      */
     public function destroy(CategoriaArticulo $categoria_Articulo)
     {
-        //
+        
     }
 }
