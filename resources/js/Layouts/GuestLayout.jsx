@@ -14,5 +14,7 @@ export default function GuestLayout({ children }) {
                 {children}
             </div>
         </div>
+
     );
+
 }
