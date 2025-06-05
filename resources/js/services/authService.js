@@ -118,9 +118,53 @@ class AuthService {    // Registrar usuario
         return this.hasRole('admin');
     }
 
-    // Verificar si es moderador
-    isModerator() {
-        return this.hasRole('moderator');
+    // Actualizar perfil de usuario
+    async updateProfile(profileData) {
+        try {
+            console.log('Updating profile with:', profileData);
+            const response = await apiInstance.put('/auth/profile', profileData);
+            console.log('Profile update response:', response.data);
+            
+            if (response.data.success) {
+                localStorage.setItem('user', JSON.stringify(response.data.user));
+            }
+            return response.data;
+        } catch (error) {
+            console.error('Profile update error:', error);
+            throw error;
+        }
+    }
+
+    // Cambiar contraseña
+    async changePassword(passwordData) {
+        try {
+            console.log('Changing password...');
+            const response = await apiInstance.put('/auth/change-password', passwordData);
+            console.log('Password change response:', response.data);
+            return response.data;
+        } catch (error) {
+            console.error('Password change error:', error);
+            throw error;
+        }
+    }
+
+    // Eliminar cuenta
+    async deleteAccount(password) {
+        try {
+            console.log('Deleting account...');
+            const response = await apiInstance.delete('/auth/account', {
+                data: { password }
+            });
+            console.log('Account deletion response:', response.data);
+            
+            if (response.data.success) {
+                this.removeToken();
+            }
+            return response.data;
+        } catch (error) {
+            console.error('Account deletion error:', error);
+            throw error;
+        }
     }
 }
 

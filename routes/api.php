@@ -11,6 +11,11 @@ Route::prefix('v1/auth')->group(function () {
     Route::post('logout', [AuthController::class, 'logout'])->middleware('jwt.auth');
     Route::post('refresh', [AuthController::class, 'refresh'])->middleware('jwt.auth');
     Route::get('me', [AuthController::class, 'me'])->middleware('jwt.auth');
+    
+    // Rutas de gestión de perfil
+    Route::put('profile', [AuthController::class, 'updateProfile'])->middleware('jwt.auth');
+    Route::put('change-password', [AuthController::class, 'changePassword'])->middleware('jwt.auth');
+    Route::delete('account', [AuthController::class, 'deleteAccount'])->middleware('jwt.auth');
 });
 
 // Rutas protegidas
