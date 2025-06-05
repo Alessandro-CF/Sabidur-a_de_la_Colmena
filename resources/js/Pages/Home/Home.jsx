@@ -1,17 +1,51 @@
 import { useState, useEffect } from 'react';
 import { Link } from '@inertiajs/react';
 import { Menu, X, ChevronDown, User } from 'lucide-react';
+import authService from '../../services/authService';
 
 // Componente principal
 export default function Home() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false); // Simulación de estado de login
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [user, setUser] = useState(null);
 
-  // Efecto para animaciones de entrada
+  // Verificar estado de autenticación al cargar el componente
   useEffect(() => {
-    // Aquí podrías añadir animaciones con JS vanilla o alguna librería
+    const checkAuthStatus = async () => {
+      try {
+        const token = authService.getToken();
+        if (token) {
+          const userData = await authService.getCurrentUser();
+          setUser(userData);
+          setIsLoggedIn(true);
+        }
+      } catch (error) {
+        console.log('No hay usuario autenticado');
+        authService.removeToken();
+        setIsLoggedIn(false);
+        setUser(null);
+      }
+    };
+
+    checkAuthStatus();
   }, []);
+
+  const handleLogout = async () => {
+    try {
+      await authService.logout();
+      setIsLoggedIn(false);
+      setUser(null);
+      setIsProfileOpen(false);
+      // Opcional: mostrar mensaje de éxito
+    } catch (error) {
+      console.error('Error al cerrar sesión:', error);
+      // Limpiar tokens localmente en caso de error
+      authService.removeToken();
+      setIsLoggedIn(false);
+      setUser(null);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -41,7 +75,7 @@ export default function Home() {
                     onClick={() => setIsProfileOpen(!isProfileOpen)}
                     className="flex items-center px-3 py-2 rounded-md text-gray-900 hover:bg-amber-500 transition"
                   >
-                    {isLoggedIn ? "Usuario" : "Perfil"}
+                    {isLoggedIn ? (user?.name || "Usuario") : "Perfil"}
                     <ChevronDown className="ml-1 h-4 w-4" />
                   </button>
                   
@@ -51,7 +85,12 @@ export default function Home() {
                         <>
                           <ProfileLink href="/perfil">Mi Perfil</ProfileLink>
                           <ProfileLink href="/configuracion">Configuración</ProfileLink>
-                          <ProfileLink href="/logout">Cerrar Sesión</ProfileLink>
+                          <button
+                            onClick={handleLogout}
+                            className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                          >
+                            Cerrar Sesión
+                          </button>
                         </>
                       ) : (
                         <>
@@ -90,7 +129,12 @@ export default function Home() {
                 <>
                   <MobileNavLink href="/perfil">Mi Perfil</MobileNavLink>
                   <MobileNavLink href="/configuracion">Configuración</MobileNavLink>
-                  <MobileNavLink href="/logout">Cerrar Sesión</MobileNavLink>
+                  <button
+                    onClick={handleLogout}
+                    className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-900 hover:bg-amber-500 hover:text-gray-900"
+                  >
+                    Cerrar Sesión
+                  </button>
                 </>
               ) : (
                 <>

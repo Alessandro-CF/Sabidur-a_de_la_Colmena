@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test API JWT</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+    <h1>Test JWT API</h1>
+    
+    <div>
+        <h2>Login Test</h2>
+        <button onclick="testLogin()">Test Login</button>
+        <div id="loginResult"></div>
+    </div>
+
+    <div>
+        <h2>Register Test</h2>
+        <button onclick="testRegister()">Test Register</button>
+        <div id="registerResult"></div>
+    </div>
+
+    <script>
+        // Configurar Axios
+        const api = axios.create({
+            baseURL: `${window.location.protocol}//${window.location.host}/api/v1`,
+            timeout: 15000,
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+            }
+        });
+
+        async function testLogin() {
+            try {
+                console.log('Testing login...');
+                const response = await api.post('/auth/login', {
+                    email: 'admin@sabiduria.com',
+                    password: 'password123'
+                });
+                console.log('Login successful:', response.data);
+                document.getElementById('loginResult').innerHTML = 
+                    `<pre style="color: green;">${JSON.stringify(response.data, null, 2)}</pre>`;
+            } catch (error) {
+                console.error('Login error:', error);
+                document.getElementById('loginResult').innerHTML = 
+                    `<pre style="color: red;">Error: ${error.message}\n${JSON.stringify(error.response?.data || 'No response data', null, 2)}</pre>`;
+            }
+        }
+
+        async function testRegister() {
+            try {
+                console.log('Testing register...');
+                const response = await api.post('/auth/register', {
+                    name: 'Test User',
+                    email: `test${Date.now()}@example.com`,
+                    password: 'password123',
+                    password_confirmation: 'password123'
+                });
+                console.log('Register successful:', response.data);
+                document.getElementById('registerResult').innerHTML = 
+                    `<pre style="color: green;">${JSON.stringify(response.data, null, 2)}</pre>`;
+            } catch (error) {
+                console.error('Register error:', error);
+                document.getElementById('registerResult').innerHTML = 
+                    `<pre style="color: red;">Error: ${error.message}\n${JSON.stringify(error.response?.data || 'No response data', null, 2)}</pre>`;
+            }
+        }
+
+        // Mostrar la URL base que se está usando
+        console.log('API Base URL:', `${window.location.protocol}//${window.location.host}/api/v1`);
+    </script>
+</body>
+</html>

@@ -1,11 +1,25 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
+// Página principal - Home con el sistema de la colmena
 Route::get('/', function () {
+    return Inertia::render('Home/Home');
+});
+
+// Rutas de autenticación JWT
+Route::get('/login', function () {
+    return Inertia::render('Auth/JWTLogin');
+})->name('login');
+
+Route::get('/register', function () {
+    return Inertia::render('Auth/JWTRegister');
+})->name('register');
+
+// Página de bienvenida de Laravel (puede mantenerse para desarrollo)
+Route::get('/welcome', function () {
     return Inertia::render('Welcome', [
         'canLogin' => Route::has('login'),
         'canRegister' => Route::has('register'),
@@ -13,20 +27,3 @@ Route::get('/', function () {
         'phpVersion' => PHP_VERSION,
     ]);
 });
-
-// Route::get('/dashboard', function () {
-//     return Inertia::render('Dashboard');
-// })->middleware(['auth', 'verified'])->name('dashboard');
-
-Route::get('/', function () {
-    return Inertia::render('Home/Home');
-});
-
-
-Route::middleware('auth')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-});
-
-require __DIR__.'/auth.php';
