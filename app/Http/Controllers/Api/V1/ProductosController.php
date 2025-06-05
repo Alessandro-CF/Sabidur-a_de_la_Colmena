@@ -1,24 +1,17 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api\V1;
 
-use App\Models\Consulta;
+use App\Http\Controllers\Controller;
+use App\Models\Producto;
 use Illuminate\Http\Request;
 
-class ConsultaController extends Controller
+class ProductosController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
     public function index()
-    {
-        //
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
     {
         //
     }
@@ -34,15 +27,7 @@ class ConsultaController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Consulta $consulta)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Consulta $consulta)
+    public function show(Producto $producto)
     {
         //
     }
@@ -50,7 +35,7 @@ class ConsultaController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Consulta $consulta)
+    public function update(Request $request, Producto $producto)
     {
         //
     }
@@ -58,7 +43,7 @@ class ConsultaController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Consulta $consulta)
+    public function destroy(Producto $producto)
     {
         //
     }
