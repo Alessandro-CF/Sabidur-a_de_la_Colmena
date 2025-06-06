@@ -29,32 +29,12 @@ Route::middleware('jwt.auth')->prefix('v1')->group(function () {
     
     // Rutas solo para admin
     Route::middleware('isAdmin')->group(function () {
-        // Aquí irán rutas de administración
-        Route::get('/admin/dashboard', function () {
-            return response()->json([
-                'success' => true,
-                'message' => 'Welcome to admin dashboard'
-            ]);
-        });
-        
-        // Ejemplo: gestión de usuarios (solo admin)
-        Route::get('/admin/users', function () {
-            return response()->json([
-                'success' => true,
-                'users' => \App\Models\User::all()
-            ]);
-        });
+        // Aquí irán rutas de administración específicas
     });
     
-    // Rutas para admin y moderator usando el middleware role
+    // Rutas para admin y moderator
     Route::middleware('role:admin,moderator')->group(function () {
         // Aquí irán rutas de moderación
-        Route::get('/moderation/dashboard', function () {
-            return response()->json([
-                'success' => true,
-                'message' => 'Welcome to moderation dashboard'
-            ]);
-        });
     });
     
     // Aquí irán tus otros controladores de API

@@ -21,7 +21,6 @@ export default function Home() {
           setIsLoggedIn(true);
         }
       } catch (error) {
-        console.log('No hay usuario autenticado');
         authService.removeToken();
         setIsLoggedIn(false);
         setUser(null);
