@@ -1,19 +1,18 @@
 import api from './api';
-// import apiDev from './api-dev'; // Descomentar si necesitas usar servidor Laravel dev
 
-// Para usar servidor de desarrollo Laravel (php artisan serve), cambiar por apiDev
+// Configuración de la instancia de API
 const apiInstance = api;
 
-class AuthService {    // Registrar usuario
+class AuthService {
+    // Registrar usuario
     async register(name, email, password, password_confirmation) {
-        try {            console.log('Attempting registration with:', { name, email, password: '***' });
+        try {
             const response = await apiInstance.post('/auth/register', {
                 name,
                 email,
                 password,
                 password_confirmation
             });
-            console.log('Registration response:', response.data);
             if (response.data.success) {
                 localStorage.setItem('jwt_token', response.data.token);
                 localStorage.setItem('user', JSON.stringify(response.data.user));
@@ -28,14 +27,15 @@ class AuthService {    // Registrar usuario
             });
             throw error;
         }
-    }// Iniciar sesión
+    }
+
+    // Iniciar sesión
     async login(email, password) {
-        try {            console.log('Attempting login with:', { email, password: '***' });
+        try {
             const response = await apiInstance.post('/auth/login', {
                 email,
                 password
             });
-            console.log('Login response:', response.data);
             if (response.data.success) {
                 localStorage.setItem('jwt_token', response.data.token);
                 localStorage.setItem('user', JSON.stringify(response.data.user));
@@ -50,7 +50,9 @@ class AuthService {    // Registrar usuario
             });
             throw error;
         }
-    }    // Cerrar sesión
+    }
+
+    // Cerrar sesión
     async logout() {
         try {
             await apiInstance.post('/auth/logout');
@@ -60,7 +62,9 @@ class AuthService {    // Registrar usuario
             localStorage.removeItem('jwt_token');
             localStorage.removeItem('user');
         }
-    }    // Obtener usuario actual
+    }
+
+    // Obtener usuario actual
     async getCurrentUser() {
         try {
             const response = await apiInstance.get('/auth/me');
@@ -96,7 +100,9 @@ class AuthService {    // Registrar usuario
     getUser() {
         const user = localStorage.getItem('user');
         return user ? JSON.parse(user) : null;
-    }    // Obtener token
+    }
+
+    // Obtener token
     getToken() {
         return localStorage.getItem('jwt_token');
     }
@@ -118,9 +124,47 @@ class AuthService {    // Registrar usuario
         return this.hasRole('admin');
     }
 
-    // Verificar si es moderador
-    isModerator() {
-        return this.hasRole('moderator');
+    // Actualizar perfil de usuario
+    async updateProfile(profileData) {
+        try {
+            const response = await apiInstance.put('/auth/profile', profileData);
+            
+            if (response.data.success) {
+                localStorage.setItem('user', JSON.stringify(response.data.user));
+            }
+            return response.data;
+        } catch (error) {
+            console.error('Profile update error:', error);
+            throw error;
+        }
+    }
+
+    // Cambiar contraseña
+    async changePassword(passwordData) {
+        try {
+            const response = await apiInstance.put('/auth/change-password', passwordData);
+            return response.data;
+        } catch (error) {
+            console.error('Password change error:', error);
+            throw error;
+        }
+    }
+
+    // Eliminar cuenta
+    async deleteAccount(password) {
+        try {
+            const response = await apiInstance.delete('/auth/account', {
+                data: { password }
+            });
+            
+            if (response.data.success) {
+                this.removeToken();
+            }
+            return response.data;
+        } catch (error) {
+            console.error('Account deletion error:', error);
+            throw error;
+        }
     }
 }
 

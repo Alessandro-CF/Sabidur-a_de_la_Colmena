@@ -18,6 +18,15 @@ Route::get('/register', function () {
     return Inertia::render('Auth/JWTRegister');
 })->name('register');
 
+// Rutas de perfil de usuario
+Route::get('/perfil', function () {
+    return Inertia::render('Profile/Profile');
+})->name('profile');
+
+Route::get('/configuracion', function () {
+    return Inertia::render('Profile/Settings');
+})->name('settings');
+
 // Página de bienvenida de Laravel (puede mantenerse para desarrollo)
 Route::get('/welcome', function () {
     return Inertia::render('Welcome', [

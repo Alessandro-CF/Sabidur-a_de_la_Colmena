@@ -19,8 +19,8 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Registrar aliases de middleware
         $middleware->alias([
-            'jwt.auth' => \Tymon\JWTAuth\Http\Middleware\Authenticate::class,
-            'jwt.refresh' => \Tymon\JWTAuth\Http\Middleware\RefreshToken::class,
+            'jwt.auth' => \App\Http\Middleware\JWTAuthenticate::class,
+            'jwt.refresh' => \App\Http\Middleware\JWTRefreshToken::class,
             'cors' => \Illuminate\Http\Middleware\HandleCors::class,
             'custom.cors' => \App\Http\Middleware\CustomCorsMiddleware::class,
             'api.throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
