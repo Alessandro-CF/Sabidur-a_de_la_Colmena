@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Link } from "@inertiajs/react";
+import React, { useState, useEffect } from "react";
+import { Link, usePage } from "@inertiajs/react";
 
 // Logo igual al de Home.jsx
 function HexagonLogo() {
@@ -19,12 +19,30 @@ function ChevronDown(props) {
   );
 }
 
-function NavLink({ href, children, active }) {
+// Componente de icono de notificación
+function NotificationIcon({ count = 0 }) {
+  return (
+    <div className="relative">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="transition-all duration-300 hover:scale-110">
+        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+      </svg>
+      {count > 0 && (
+        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center animate-pulse">
+          {count > 9 ? '9+' : count}
+        </span>
+      )}
+    </div>
+  );
+}
+
+function NavLink({ href, children, active, icon = null }) {
   return (
     <Link
       href={href}
-      className={`px-3 py-2 rounded-md text-sm font-medium hover:bg-amber-500 transition ${active ? "bg-amber-300" : ""}`}
+      className={`px-3 py-2 rounded-md text-sm font-medium hover:bg-amber-500 transition flex items-center gap-2 ${active ? "bg-amber-300" : ""}`}
     >
+      {icon}
       {children}
     </Link>
   );
@@ -44,7 +62,32 @@ function ProfileLink({ href, children }) {
 export default function Navbar() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [notificationCount, setNotificationCount] = useState(0);
   const isLoggedIn = false;
+
+  // Obtener el número de notificaciones no leídas
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const response = await fetch('/api/notificaciones/count');
+        if (response.ok) {
+          const data = await response.json();
+          setNotificationCount(data.count);
+        }
+      } catch (error) {
+        console.error('Error al obtener notificaciones:', error);
+      }
+    };
+
+    // Ejecutar la función para obtener notificaciones
+    fetchNotifications();
+    
+    // Actualizar las notificaciones cada 30 segundos
+    const interval = setInterval(fetchNotifications, 30000);
+    
+    // Limpiar el intervalo cuando el componente se desmonte
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <nav className="bg-[#FFF32B] text-gray-900 shadow-md sticky top-0 z-50">
@@ -64,6 +107,16 @@ export default function Navbar() {
               <NavLink href="/comunidad" active={window.location.pathname.startsWith("/comunidad")}>Comunidad</NavLink>
               <NavLink href="/productos" active={window.location.pathname === "/productos"}>Productos</NavLink>
               <NavLink href="/capacitaciones" active={window.location.pathname === "/capacitaciones"}>Capacitaciones</NavLink>
+              
+              {/* Notificaciones */}
+              <NavLink 
+                href="/comunidad/notificaciones" 
+                active={window.location.pathname === "/comunidad/notificaciones"}
+                icon={<NotificationIcon count={notificationCount} />}
+              >
+                Notificaciones
+              </NavLink>
+              
               {/* Perfil */}
               <div className="relative">
                 <button
@@ -118,6 +171,16 @@ export default function Navbar() {
             <NavLink href="/comunidad" active={window.location.pathname.startsWith("/comunidad")}>Comunidad</NavLink>
             <NavLink href="/productos" active={window.location.pathname === "/productos"}>Productos</NavLink>
             <NavLink href="/capacitaciones" active={window.location.pathname === "/capacitaciones"}>Capacitaciones</NavLink>
+            
+            {/* Notificaciones para móvil */}
+            <NavLink 
+              href="/comunidad/notificaciones" 
+              active={window.location.pathname === "/comunidad/notificaciones"}
+              icon={<NotificationIcon count={notificationCount} />}
+            >
+              Notificaciones
+            </NavLink>
+            
             <div className="border-t my-2"></div>
             {isLoggedIn ? (
               <>

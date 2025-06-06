@@ -3,15 +3,16 @@ import Navbar from "@/Components/Navbar";
 import Footer from "@/Components/Footer";
 import { Link, useForm } from "@inertiajs/react";
 
-export default function CrearPublicacion() {
+export default function EditarPublicacion({ publicacion }) {
   const { data, setData, post, processing, errors } = useForm({
-    titulo: '',
-    contenido: '',
+    titulo: publicacion.titulo,
+    contenido: publicacion.contenido,
     imagen: null
   });
   
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+  const [imagenPreview, setImagenPreview] = useState(publicacion.imagen);
   
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -25,17 +26,14 @@ export default function CrearPublicacion() {
       return;
     }    
     
-    post(route('comunidad.store'), {
+    post(route('comunidad.update', { publicacion: publicacion.id }), {
       preserveScroll: true,
       forceFormData: true,
       onSuccess: () => {
-        setSuccessMessage('¡Publicación creada con éxito!');
-        setData('titulo', '');
-        setData('contenido', '');
-        setData('imagen', null);
+        setSuccessMessage('¡Publicación actualizada con éxito!');
         // Redirect after short delay to show success message
         setTimeout(() => {
-          window.location.href = route('comunidad.index');
+          window.location.href = route('comunidad.mis-publicaciones');
         }, 1500);
       },
       onError: (errors) => {
@@ -46,7 +44,7 @@ export default function CrearPublicacion() {
         } else if (errors.imagen) {
           setErrorMessage(errors.imagen);
         } else {
-          setErrorMessage('Ocurrió un error al crear la publicación');
+          setErrorMessage('Ocurrió un error al actualizar la publicación');
         }
       }
     });
@@ -119,8 +117,8 @@ export default function CrearPublicacion() {
         {/* Hero Section */}
         <div className="bg-gradient-to-r from-amber-100 to-amber-50 py-8 border-b border-amber-200">
           <div className="max-w-4xl mx-auto px-6 text-center">
-            <h1 className="text-3xl font-bold text-amber-900 mb-2">Crear Nueva Publicación</h1>
-            <p className="text-amber-800">Comparte tus conocimientos y experiencias con la comunidad apícola</p>
+            <h1 className="text-3xl font-bold text-amber-900 mb-2">Editar Publicación</h1>
+            <p className="text-amber-800">Actualiza tu publicación en la comunidad apícola</p>
           </div>
         </div>
         
@@ -179,6 +177,19 @@ export default function CrearPublicacion() {
                   </svg>
                   Imagen <span className="text-gray-500 font-normal ml-1">(opcional)</span>
                 </label>
+                
+                {imagenPreview && (
+                  <div className="mb-4 text-center">
+                    <p className="text-sm text-gray-500 mb-2">Imagen actual:</p>
+                    <img 
+                      src={imagenPreview} 
+                      alt="Vista previa" 
+                      className="h-32 object-contain mx-auto border border-amber-200 rounded-lg p-2 bg-white"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Para cambiar la imagen, selecciona una nueva abajo</p>
+                  </div>
+                )}
+                
                 <div className="flex items-center justify-center w-full">
                   <label className="flex flex-col w-full h-32 border-2 border-amber-300 border-dashed rounded-lg cursor-pointer bg-white hover:bg-amber-50 transition-colors">
                     <div className="flex flex-col items-center justify-center pt-7">
@@ -186,14 +197,25 @@ export default function CrearPublicacion() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                       </svg>
                       <p className="pt-1 text-sm tracking-wider text-gray-600 group-hover:text-gray-600">
-                        {data.imagen ? data.imagen.name : 'Selecciona una imagen'}
+                        {data.imagen ? data.imagen.name : 'Selecciona una nueva imagen'}
                       </p>
                     </div>
                     <input 
                       type="file" 
                       accept="image/*" 
                       className="opacity-0" 
-                      onChange={e => setData('imagen', e.target.files[0])}
+                      onChange={e => {
+                        const file = e.target.files[0];
+                        setData('imagen', file);
+                        if (file) {
+                          // Crear URL para vista previa
+                          const reader = new FileReader();
+                          reader.onload = (e) => {
+                            setImagenPreview(e.target.result);
+                          };
+                          reader.readAsDataURL(file);
+                        }
+                      }}
                     />
                   </label>
                 </div>
@@ -232,27 +254,27 @@ export default function CrearPublicacion() {
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>
-                      Publicando...
+                      Actualizando...
                     </>
                   ) : (
                     <>
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 1.414L10.586 9H7a1 1 0 100 2h3.586l-1.293 1.293a1 1 0 101.414 1.414l3-3a1 1 0 000-1.414z" clipRule="evenodd" />
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4a1 1 0 000-1.414z" clipRule="evenodd" />
                       </svg>
-                      Publicar
+                      Guardar cambios
                     </>
                   )}
                 </button>
                 
                 <div className="flex justify-center mt-6">
                   <Link
-                    href={route('comunidad.index')}
+                    href={route('comunidad.mis-publicaciones')}
                     className="text-amber-600 hover:text-amber-800 transition-colors flex items-center gap-1"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                       <path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" />
                     </svg>
-                    Volver a la comunidad
+                    Cancelar y volver
                   </Link>
                 </div>
               </div>

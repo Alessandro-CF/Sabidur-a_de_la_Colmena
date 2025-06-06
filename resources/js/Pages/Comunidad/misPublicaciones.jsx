@@ -1,87 +1,39 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Navbar from '@/Components/Navbar';
 import Footer from '@/Components/Footer';
 import { Link, router } from '@inertiajs/react';
-import { Head } from '@inertiajs/react';
 
-const categorias = [
-    { nombre: 'Seguridad', icono: '🔒', color: 'bg-red-50 border-red-200' },
-    { nombre: 'Cuidados y salud de la colmena', icono: '🐝', color: 'bg-amber-50 border-amber-200' },
-    { nombre: 'Consejos y buenas prácticas', icono: '📋', color: 'bg-blue-50 border-blue-200' },
-    { nombre: 'Limpieza', icono: '🧽', color: 'bg-green-50 border-green-200' },
-    { nombre: 'Productos recomendados', icono: '🛒', color: 'bg-purple-50 border-purple-200' },
-];
-
-export default function Comunidad({ publicaciones, flash }) {
-    const [mensaje, setMensaje] = useState(null);
-    const [animatedCardId, setAnimatedCardId] = useState(null);
+export default function MisPublicaciones({ publicaciones }) {
+    const [confirmDelete, setConfirmDelete] = useState(null);
     
-    useEffect(() => {
-        // Mostrar mensaje flash si existe
-        if (flash && (flash.success || flash.error)) {
-            setMensaje({
-                tipo: flash.success ? 'success' : 'error',
-                texto: flash.success || flash.error
-            });
-            
-            // Ocultar el mensaje después de 3 segundos
-            const timer = setTimeout(() => {
-                setMensaje(null);
-            }, 3000);
-            
-            return () => clearTimeout(timer);
-        }
-    }, [flash]);
-
     const handleLike = (id) => {
-        setAnimatedCardId(id);
-        setTimeout(() => {
-            router.post(route('comunidad.like', { publicacion: id }), {}, {
-                preserveScroll: true
-            });
-        }, 300);
+        router.post(route('comunidad.like', { publicacion: id }), {}, {
+            preserveScroll: true
+        });
     };
 
     const handleGuardar = (id) => {
-        setAnimatedCardId(id);
-        setTimeout(() => {
-            router.post(route('comunidad.guardar', { publicacion: id }), {}, {
-                preserveScroll: true
-            });
-        }, 300);
+        router.post(route('comunidad.guardar', { publicacion: id }), {}, {
+            preserveScroll: true
+        });
+    };
+    
+    const handleEliminar = (id) => {
+        if (confirmDelete === id) {
+            router.delete(route('comunidad.eliminar', { publicacion: id }));
+            setConfirmDelete(null);
+        } else {
+            setConfirmDelete(id);
+        }
+    };
+    
+    const cancelarEliminar = () => {
+        setConfirmDelete(null);
     };
 
     return (
         <>
-            <Head>
-                <title>Comunidad | Sabiduría de la Colmena</title>
-                <style>{`
-                    @keyframes pulse {
-                        0%, 100% { transform: scale(1); }
-                        50% { transform: scale(1.05); }
-                    }
-                    .animate-like-pulse {
-                        animation: pulse 0.3s ease-in-out;
-                    }
-                `}</style>
-            </Head>
             <Navbar />
-            
-            {/* Mensaje Flash */}
-            {mensaje && (
-                <div className={`fixed top-20 right-4 z-50 p-4 rounded-lg shadow-lg transition-all duration-500 transform translate-y-0 ${
-                    mensaje.tipo === 'success' ? 'bg-green-100 border-l-4 border-green-500 text-green-700' : 
-                    'bg-red-100 border-l-4 border-red-500 text-red-700'
-                }`}>
-                    <div className="flex items-center">
-                        <div className={`text-xl mr-2 ${mensaje.tipo === 'success' ? 'text-green-500' : 'text-red-500'}`}>
-                            {mensaje.tipo === 'success' ? '✅' : '❌'}
-                        </div>
-                        <p>{mensaje.texto}</p>
-                    </div>
-                </div>
-            )}
-            
             <div className="bg-gradient-to-b from-[#F7FAFC] to-[#EDF2F7] min-h-screen">
                 {/* Barra superior sticky */}
                 <div className="sticky top-0 z-30 bg-white shadow-md">
@@ -144,65 +96,44 @@ export default function Comunidad({ publicaciones, flash }) {
                 </div>
 
                 {/* Hero Section */}
-                <div className="bg-gradient-to-r from-amber-100 to-amber-50 py-12 border-b border-amber-200">
-                    <div className="max-w-6xl mx-auto px-6 text-center">
-                        <h1 className="text-4xl font-bold text-amber-900 mb-4">Comunidad Apícola</h1>
-                        <p className="text-lg text-amber-800 max-w-3xl mx-auto">Comparte tu conocimiento, experiencias y consejos con otros apicultores. Juntos construimos una comunidad más fuerte y sostenible.</p>
-                    </div>
-                </div>
-
-                {/* Categorías */}
-                <section className="max-w-7xl mx-auto px-6 py-12">
-                    <h2 className="text-2xl font-bold text-[#39393A] mb-6 flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2 text-[#FA9500]" viewBox="0 0 20 20" fill="currentColor">
-                            <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z" />
-                        </svg>
-                        Explora nuestras Categorías
-                    </h2>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5">
-                        {categorias.map((cat) => (
-                            <div key={cat.nombre} className={`flex items-center gap-3 ${cat.color} rounded-xl px-4 py-6 font-semibold shadow-sm hover:shadow-md transition-all transform hover:-translate-y-1 cursor-pointer border`}>
-                                <span className="text-3xl">{cat.icono}</span>
-                                <span>{cat.nombre}</span>
-                            </div>
-                        ))}
-                    </div>
-                </section>
-
-                {/* Mensaje motivacional */}
-                <div className="bg-gradient-to-r from-[#FFFBEB] to-[#FFF3C4] text-amber-800 text-center py-6 font-bold text-lg shadow-inner border-y border-amber-200">
-                    <div className="max-w-4xl mx-auto px-6 flex items-center justify-center gap-3">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-amber-600" viewBox="0 0 20 20" fill="currentColor">
-                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
-                        </svg>
-                        ¡Anímate a escribir y compartir tus conocimientos, para esta Gran Colmena!
+                <div className="bg-gradient-to-r from-amber-100 to-amber-50 py-8 border-b border-amber-200">
+                    <div className="max-w-4xl mx-auto px-6 text-center">
+                        <h1 className="text-3xl font-bold text-amber-900 mb-2">Tus Publicaciones</h1>
+                        <p className="text-amber-800">Administra tus publicaciones en la comunidad apícola</p>
                     </div>
                 </div>
 
                 {/* Publicaciones */}
                 <section className="max-w-7xl mx-auto px-6 py-12">
-                    <h2 className="text-3xl font-bold text-[#22223b] mb-8 flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7 mr-2 text-[#FA9500]" viewBox="0 0 20 20" fill="currentColor">
-                            <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                        </svg>
-                        Publicaciones de la comunidad
-                    </h2>
+                    <div className="mb-6 flex justify-between items-center">
+                        <h2 className="text-2xl font-bold text-[#39393A] flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2 text-[#FA9500]" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                            </svg>
+                            Mis publicaciones
+                        </h2>
+                        <Link 
+                            href={route('comunidad.index')} 
+                            className="text-amber-600 hover:text-amber-800 flex items-center gap-1"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" />
+                            </svg>
+                            Volver a la comunidad
+                        </Link>
+                    </div>
                     
                     {publicaciones && publicaciones.length > 0 ? (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                             {publicaciones.map((pub) => (
-                                <div 
-                                    key={pub.id} 
-                                    className={`bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden flex flex-col ${animatedCardId === pub.id ? 'animate-like-pulse' : ''}`}
-                                    onAnimationEnd={() => setAnimatedCardId(null)}
-                                >
-                                    <Link href={route('comunidad.publicacion', pub.id)} className="h-40 flex items-center justify-center border-b bg-gradient-to-r from-[#FFFBEB] to-[#FFF3C4] rounded-t-2xl hover:opacity-90 transition-opacity">
+                                <div key={pub.id} className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col">
+                                    <div className="h-40 flex items-center justify-center border-b bg-gradient-to-r from-[#FFFBEB] to-[#FFF3C4] rounded-t-2xl">
                                         <img 
                                             src={pub.imagen || "/images/colmena_logo.png"} 
                                             alt="Imagen de la publicación" 
-                                            className="h-28 object-contain hover:scale-105 transition-transform duration-300"
+                                            className="h-28 object-contain"
                                         />
-                                    </Link>
+                                    </div>
                                     <div className="p-6 flex-1 flex flex-col">
                                         <div className="flex justify-between text-xs text-gray-500 mb-3">
                                             <div className="flex items-center gap-1">
@@ -219,7 +150,7 @@ export default function Comunidad({ publicaciones, flash }) {
                                             </div>
                                             <button
                                                 onClick={() => handleLike(pub.id)}
-                                                className="flex items-center gap-1 focus:outline-none transition-transform hover:scale-110"
+                                                className="flex items-center gap-1 focus:outline-none"
                                                 aria-label="Me gusta"
                                             >
                                                 <svg
@@ -238,8 +169,9 @@ export default function Comunidad({ publicaciones, flash }) {
                                                 </svg>
                                             </button>
                                         </div>
-                                        <Link href={route('comunidad.publicacion', pub.id)} className="font-bold text-xl mb-2 text-[#39393A] hover:text-[#FA9500] transition-colors">{pub.titulo}</Link>
-                                        <div className="text-gray-700 text-sm flex-1 leading-relaxed line-clamp-3">{pub.contenido}</div>
+                                        <div className="font-bold text-xl mb-2 text-[#39393A]">{pub.titulo}</div>
+                                        <div className="text-gray-700 text-sm flex-1 leading-relaxed">{pub.contenido}</div>
+                                        
                                         <div className="flex justify-between items-center mt-5 pt-4 border-t border-gray-100">
                                             <div className="flex items-center">
                                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-[#FA9500] mr-1" viewBox="0 0 20 20" fill="currentColor">
@@ -249,27 +181,53 @@ export default function Comunidad({ publicaciones, flash }) {
                                                     {pub.likes} Me gusta
                                                 </span>
                                             </div>
-                                            <button
-                                                onClick={() => handleGuardar(pub.id)}
-                                                className={`px-3 py-1.5 rounded-full text-sm font-medium flex items-center gap-1 ${pub.guardado ? 'bg-amber-100 text-amber-800' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'} transition-all duration-300 hover:shadow`}
-                                            >
-                                                {pub.guardado ? (
-                                                    <>
-                                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                                                            <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
-                                                        </svg>
-                                                        Guardado
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-                                                        </svg>
-                                                        Guardar
-                                                    </>
-                                                )}
-                                            </button>
+                                            <div className="flex items-center gap-2">
+                                                <Link 
+                                                    href={route('comunidad.editar', { publicacion: pub.id })} 
+                                                    className="text-blue-600 hover:text-blue-800 transition-colors"
+                                                >
+                                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                                        <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                                                    </svg>
+                                                </Link>
+                                                
+                                                <button 
+                                                    onClick={() => handleEliminar(pub.id)}
+                                                    className="text-red-600 hover:text-red-800 transition-colors focus:outline-none"
+                                                >
+                                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                                        <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                                                    </svg>
+                                                </button>
+                                                
+                                                <Link 
+                                                    href={route('comunidad.publicacion', { publicacion: pub.id })} 
+                                                    className="bg-amber-100 text-amber-800 px-3 py-1 rounded-full text-xs font-medium hover:bg-amber-200 transition-colors"
+                                                >
+                                                    Ver completo
+                                                </Link>
+                                            </div>
                                         </div>
+                                        
+                                        {confirmDelete === pub.id && (
+                                            <div className="mt-4 bg-red-50 p-3 rounded-lg border border-red-200">
+                                                <p className="text-red-700 text-sm mb-2">¿Estás seguro de que deseas eliminar esta publicación?</p>
+                                                <div className="flex justify-end gap-2">
+                                                    <button 
+                                                        onClick={cancelarEliminar}
+                                                        className="px-3 py-1 bg-gray-200 text-gray-800 rounded text-xs font-medium"
+                                                    >
+                                                        Cancelar
+                                                    </button>
+                                                    <button 
+                                                        onClick={() => handleEliminar(pub.id)}
+                                                        className="px-3 py-1 bg-red-600 text-white rounded text-xs font-medium"
+                                                    >
+                                                        Confirmar
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             ))}
@@ -278,8 +236,8 @@ export default function Comunidad({ publicaciones, flash }) {
                         <div className="text-center py-16">
                             <div className="bg-white rounded-2xl shadow-lg p-10 max-w-2xl mx-auto border border-amber-100">
                                 <div className="text-7xl mb-6 flex justify-center">🐝</div>
-                                <h3 className="text-2xl font-bold text-[#FA9500] mb-3">¡Aún no hay publicaciones!</h3>
-                                <p className="text-gray-600 mb-8 text-lg">Sé el primero en compartir tus conocimientos y experiencias con la comunidad apícola.</p>
+                                <h3 className="text-2xl font-bold text-[#FA9500] mb-3">¡Aún no tienes publicaciones!</h3>
+                                <p className="text-gray-600 mb-8 text-lg">Comparte tus conocimientos y experiencias con la comunidad apícola.</p>
                                 <Link
                                     href={route('comunidad.crear-publicacion')}
                                     className="bg-gradient-to-r from-[#FA9500] to-[#fb8c00] text-white font-semibold px-8 py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 inline-flex items-center gap-2"
