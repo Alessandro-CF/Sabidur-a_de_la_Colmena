@@ -74,7 +74,7 @@ export default function Home() {
                     onClick={() => setIsProfileOpen(!isProfileOpen)}
                     className="flex items-center px-3 py-2 rounded-md text-gray-900 hover:bg-amber-500 transition"
                   >
-                    {isLoggedIn ? (user?.name || "Usuario") : "Perfil"}
+                    {isLoggedIn ? (user?.name.split(' ')[0] || "Usuario") : "Perfil"}
                     <ChevronDown className="ml-1 h-4 w-4" />
                   </button>
                   
