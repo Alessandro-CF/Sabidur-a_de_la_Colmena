@@ -27,6 +27,11 @@ Route::get('/configuracion', function () {
     return Inertia::render('Profile/Settings');
 })->name('settings');
 
+// Dashboard administrativo - Solo para usuarios admin
+Route::get('/dashboard', function () {
+    return Inertia::render('Dashboard/Dashboard');
+})->name('dashboard');
+
 // Página de bienvenida de Laravel (puede mantenerse para desarrollo)
 Route::get('/welcome', function () {
     return Inertia::render('Welcome', [
