@@ -8,8 +8,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
+use Illuminate\Http\JsonResponse;
 
 class PublicacionController extends Controller
 {
@@ -525,5 +527,383 @@ class PublicacionController extends Controller
         return Inertia::render('Comunidad/misPublicaciones', [
             'publicaciones' => $publicacionesConEstado
         ]);
+    }
+
+    /**
+     * API Methods
+     */
+
+    /**
+     * Get all publications for API
+     */
+    public function indexApi(): JsonResponse
+    {
+        $publicaciones = Publicacion::orderBy('created_at', 'desc')->get();
+        
+        if ($publicaciones->isEmpty()) {
+            return response()->json(['data' => [], 'message' => 'No hay publicaciones disponibles'], 200);
+        }
+        
+        $userIdentifier = $this->getUserIdentifier();
+        
+        $publicacionesConEstado = $publicaciones->map(function($pub) use ($userIdentifier) {
+            return [
+                'id' => $pub->id,
+                'titulo' => $pub->titulo,
+                'contenido' => Str::limit($pub->contenido, 150),
+                'usuario' => $pub->usuario,
+                'fecha' => $pub->created_at->format('d/m/Y'),
+                'likes' => $pub->getAttribute('likes'), // Use getAttribute to access the column
+                'liked' => $this->hasLiked($pub->id, $userIdentifier),
+                'guardado' => $this->hasGuardado($pub->id, $userIdentifier),
+                'imagen' => $pub->imagen ?? '/images/colmena_logo.png'
+            ];
+        });
+        
+        return response()->json(['data' => $publicacionesConEstado, 'message' => 'Publicaciones obtenidas con éxito'], 200);
+    }
+
+    /**
+     * Get a specific publication for API
+     */
+    public function showApi(Publicacion $publicacion): JsonResponse
+    {
+        $userIdentifier = $this->getUserIdentifier();
+        
+        $publicacionConEstado = [
+            'id' => $publicacion->id,
+            'titulo' => $publicacion->titulo,
+            'contenido' => $publicacion->contenido,
+            'usuario' => $publicacion->usuario,
+            'fecha' => $publicacion->created_at->format('d/m/Y'),
+            'likes' => $publicacion->getAttribute('likes'), // Use getAttribute to access the column
+            'liked' => $this->hasLiked($publicacion->id, $userIdentifier),
+            'guardado' => $this->hasGuardado($publicacion->id, $userIdentifier),
+            'imagen' => $publicacion->imagen ?? '/images/colmena_logo.png'
+        ];
+        
+        return response()->json(['data' => $publicacionConEstado, 'message' => 'Publicación obtenida con éxito'], 200);
+    }
+
+    /**
+     * Store a new publication via API
+     */
+    public function storeApi(Request $request): JsonResponse
+    {
+        $request->validate([
+            'titulo' => 'required|max:255',
+            'contenido' => 'required',
+        ]);
+        
+        $publicacion = new Publicacion();
+        $publicacion->titulo = $request->titulo;
+        $publicacion->contenido = $request->contenido;
+        $publicacion->usuario = Auth::check() ? Auth::user()->name : 'Usuario API';
+        $publicacion->likes = 0; // This is going to be stored in the database column, not relation
+        
+        if ($request->hasFile('imagen')) {
+            $imagen = $request->file('imagen');
+            $nombreImagen = time() . '_' . $imagen->getClientOriginalName();
+            $imagen->move(public_path('images'), $nombreImagen);
+            $publicacion->imagen = '/images/' . $nombreImagen;
+        }
+        
+        $publicacion->save();
+        
+        return response()->json([
+            'data' => $publicacion,
+            'message' => 'Publicación creada con éxito'
+        ], 201);
+    }
+
+    /**
+     * Update a publication via API
+     */
+    public function updateApi(Request $request, Publicacion $publicacion): JsonResponse
+    {
+        $request->validate([
+            'titulo' => 'required|max:255',
+            'contenido' => 'required',
+        ]);
+        
+        // Verificar si el usuario actual es dueño de la publicación
+        if (Auth::check() && $publicacion->usuario !== Auth::user()->name) {
+            return response()->json([
+                'message' => 'No tienes permiso para editar esta publicación'
+            ], 403);
+        }
+        
+        $publicacion->titulo = $request->titulo;
+        $publicacion->contenido = $request->contenido;
+        
+        if ($request->hasFile('imagen')) {
+            // Eliminar imagen anterior si existe
+            if ($publicacion->imagen && $publicacion->imagen != '/images/colmena_logo.png') {
+                $imagenPath = public_path(str_replace('/images/', 'images/', $publicacion->imagen));
+                if (file_exists($imagenPath)) {
+                    unlink($imagenPath);
+                }
+            }
+            
+            // Guardar nueva imagen
+            $imagen = $request->file('imagen');
+            $nombreImagen = time() . '_' . $imagen->getClientOriginalName();
+            $imagen->move(public_path('images'), $nombreImagen);
+            $publicacion->imagen = '/images/' . $nombreImagen;
+        }
+        
+        $publicacion->save();
+        
+        return response()->json([
+            'data' => $publicacion,
+            'message' => 'Publicación actualizada con éxito'
+        ], 200);
+    }
+
+    /**
+     * Delete a publication via API
+     */
+    public function destroyApi(Publicacion $publicacion): JsonResponse
+    {
+        // Verificar si el usuario actual es dueño de la publicación
+        if (Auth::check() && $publicacion->usuario !== Auth::user()->name) {
+            return response()->json([
+                'message' => 'No tienes permiso para eliminar esta publicación'
+            ], 403);
+        }
+        
+        // Eliminar imagen si existe
+        if ($publicacion->imagen && $publicacion->imagen != '/images/colmena_logo.png') {
+            $imagenPath = public_path(str_replace('/images/', 'images/', $publicacion->imagen));
+            if (file_exists($imagenPath)) {
+                unlink($imagenPath);
+            }
+        }
+        
+        $publicacion->delete();
+        
+        return response()->json([
+            'message' => 'Publicación eliminada con éxito'
+        ], 200);
+    }
+
+    /**
+     * Like a publication via API
+     */
+    public function likeApi(Publicacion $publicacion): JsonResponse
+    {
+        $userIdentifier = $this->getUserIdentifier();
+        
+        // Verificar si ya dio like
+        if (!$this->hasLiked($publicacion->id, $userIdentifier)) {
+            // Incrementar contador de likes
+            // Access likes as attribute, not as relation
+            $likesCount = $publicacion->getAttribute('likes') ?? 0;
+            $publicacion->setAttribute('likes', $likesCount + 1);
+            $publicacion->save();
+            
+            // Guardar like en la tabla
+            DB::table('publicacion_like')->insert([
+                'publicacion_id' => $publicacion->id,
+                'user_identifier' => $userIdentifier,
+                'created_at' => now(),
+                'updated_at' => now()
+            ]);
+            
+            // Crear notificación
+            $notificacion = new Notificacion();
+            $notificacion->tipo = 'like';
+            $notificacion->mensaje = 'A alguien le gustó tu publicación "' . Str::limit($publicacion->titulo, 30) . '"';
+            $notificacion->link = '/comunidad/publicacion/' . $publicacion->id;
+            $notificacion->leido = false;
+            $notificacion->save();
+            
+            return response()->json([
+                'liked' => true,
+                'likes' => $publicacion->getAttribute('likes'),
+                'message' => 'Like agregado con éxito'
+            ], 200);
+        } else {
+            // Ya dio like, entonces quitar like
+            // Access likes as attribute, not as relation
+            $likesCount = $publicacion->getAttribute('likes') ?? 0;
+            $publicacion->setAttribute('likes', max(0, $likesCount - 1)); // Prevent negative likes
+            $publicacion->save();
+            
+            // Eliminar like de la tabla
+            DB::table('publicacion_like')
+                ->where('publicacion_id', $publicacion->id)
+                ->where('user_identifier', $userIdentifier)
+                ->delete();
+            
+            return response()->json([
+                'liked' => false,
+                'likes' => $publicacion->getAttribute('likes'),
+                'message' => 'Like removido con éxito'
+            ], 200);
+        }
+    }
+
+    /**
+     * Save a publication via API
+     */
+    public function guardarApi(Publicacion $publicacion): JsonResponse
+    {
+        $userIdentifier = $this->getUserIdentifier();
+        
+        // Verificar si ya está guardado
+        if (!$this->hasGuardado($publicacion->id, $userIdentifier)) {
+            // Guardar en la tabla de guardados
+            DB::table('publicacion_guardado')->insert([
+                'publicacion_id' => $publicacion->id,
+                'user_identifier' => $userIdentifier,
+                'created_at' => now(),
+                'updated_at' => now()
+            ]);
+            
+            return response()->json([
+                'guardado' => true,
+                'message' => 'Publicación guardada con éxito'
+            ], 200);
+        } else {
+            // Ya está guardado, entonces quitar de guardados
+            DB::table('publicacion_guardado')
+                ->where('publicacion_id', $publicacion->id)
+                ->where('user_identifier', $userIdentifier)
+                ->delete();
+            
+            return response()->json([
+                'guardado' => false,
+                'message' => 'Publicación removida de guardados con éxito'
+            ], 200);
+        }
+    }
+
+    /**
+     * Get user's publications via API
+     */
+    public function misPublicacionesApi(): JsonResponse
+    {
+        $userIdentifier = $this->getUserIdentifier();
+        
+        // Si hay autenticación, usamos el usuario autenticado
+        if (Auth::check()) {
+            $publicaciones = Publicacion::where('usuario', Auth::user()->name)
+                ->orderBy('created_at', 'desc')
+                ->get();
+        } else {
+            // Si no hay autenticación, usamos el identificador de cookie
+            $publicaciones = Publicacion::where('usuario', 'Usuario')
+                ->orderBy('created_at', 'desc')
+                ->get();
+        }
+            
+        $publicacionesConEstado = $publicaciones->map(function($pub) use ($userIdentifier) {
+            return [
+                'id' => $pub->id,
+                'titulo' => $pub->titulo,
+                'contenido' => $pub->contenido,
+                'usuario' => $pub->usuario,
+                'fecha' => $pub->created_at->format('d/m/Y'),
+                'likes' => $pub->getAttribute('likes'), // Use getAttribute to access the column
+                'liked' => $this->hasLiked($pub->id, $userIdentifier),
+                'guardado' => $this->hasGuardado($pub->id, $userIdentifier),
+                'imagen' => $pub->imagen ?? '/images/colmena_logo.png'
+            ];
+        });
+        
+        return response()->json([
+            'data' => $publicacionesConEstado,
+            'message' => 'Mis publicaciones obtenidas con éxito'
+        ], 200);
+    }
+
+    /**
+     * Get user's saved publications via API
+     */
+    public function guardadosApi(): JsonResponse
+    {
+        $userIdentifier = $this->getUserIdentifier();
+        
+        // Obtener IDs de publicaciones guardadas
+        $guardadosIds = DB::table('publicacion_guardado')
+            ->where('user_identifier', $userIdentifier)
+            ->pluck('publicacion_id');
+            
+        // Obtener las publicaciones guardadas
+        $publicaciones = Publicacion::whereIn('id', $guardadosIds)
+            ->orderBy('created_at', 'desc')
+            ->get();
+            
+        $publicacionesConEstado = $publicaciones->map(function($pub) use ($userIdentifier) {
+            return [
+                'id' => $pub->id,
+                'titulo' => $pub->titulo,
+                'contenido' => $pub->contenido,
+                'usuario' => $pub->usuario,
+                'fecha' => $pub->created_at->format('d/m/Y'),
+                'likes' => $pub->getAttribute('likes'), // Use getAttribute to access the column
+                'liked' => $this->hasLiked($pub->id, $userIdentifier),
+                'guardado' => $this->hasGuardado($pub->id, $userIdentifier),
+                'imagen' => $pub->imagen ?? '/images/colmena_logo.png'
+            ];
+        });
+        
+        return response()->json([
+            'data' => $publicacionesConEstado,
+            'message' => 'Publicaciones guardadas obtenidas con éxito'
+        ], 200);
+    }
+
+    /**
+     * Get notifications via API
+     */
+    public function notificacionesApi(): JsonResponse
+    {
+        $notificaciones = Notificacion::orderBy('created_at', 'desc')->get();
+        
+        return response()->json([
+            'data' => $notificaciones,
+            'message' => 'Notificaciones obtenidas con éxito'
+        ], 200);
+    }
+
+    /**
+     * Count unread notifications via API
+     */
+    public function contarNotificacionesSinLeerApi(): JsonResponse
+    {
+        $count = Notificacion::where('leido', false)->count();
+        
+        return response()->json([
+            'count' => $count,
+            'message' => 'Conteo de notificaciones sin leer obtenido con éxito'
+        ], 200);
+    }
+
+    /**
+     * Mark notification as read via API
+     */
+    public function leerNotificacionApi(Notificacion $notificacion): JsonResponse
+    {
+        $notificacion->leido = true;
+        $notificacion->save();
+        
+        return response()->json([
+            'message' => 'Notificación marcada como leída'
+        ], 200);
+    }
+
+    /**
+     * Mark all notifications as read via API
+     */
+    public function leerTodasNotificacionesApi(): JsonResponse
+    {
+        Notificacion::where('leido', false)
+            ->update(['leido' => true]);
+        
+        return response()->json([
+            'message' => 'Todas las notificaciones marcadas como leídas'
+        ], 200);
     }
 }

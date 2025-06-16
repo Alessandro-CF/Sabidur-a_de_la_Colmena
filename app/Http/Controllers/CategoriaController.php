@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Categoria;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 
 class CategoriaController extends Controller
 {
@@ -61,5 +62,33 @@ class CategoriaController extends Controller
     public function destroy(Categoria $categoria)
     {
         //
+    }
+
+    /**
+     * API Methods
+     */
+    
+    /**
+     * Display a listing of categories via API.
+     */
+    public function indexApi(): JsonResponse
+    {
+        $categorias = Categoria::all();
+        
+        return response()->json([
+            'data' => $categorias,
+            'message' => 'Categorías obtenidas con éxito'
+        ], 200);
+    }
+
+    /**
+     * Display the specified category via API.
+     */
+    public function showApi(Categoria $categoria): JsonResponse
+    {
+        return response()->json([
+            'data' => $categoria,
+            'message' => 'Categoría obtenida con éxito'
+        ], 200);
     }
 }
