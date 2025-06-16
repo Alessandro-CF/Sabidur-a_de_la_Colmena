@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\DashboardController;
 
 // Rutas de autenticación
 Route::prefix('v1/auth')->group(function () {
@@ -29,7 +30,15 @@ Route::middleware('jwt.auth')->prefix('v1')->group(function () {
     
     // Rutas solo para admin
     Route::middleware('isAdmin')->group(function () {
-        // Aquí irán rutas de administración específicas
+        // Dashboard administrativo
+        Route::prefix('dashboard')->group(function () {
+            Route::get('stats', [DashboardController::class, 'getStats']);
+            Route::get('users', [DashboardController::class, 'getUsers']);
+            Route::get('products', [DashboardController::class, 'getProducts']);
+            Route::get('articles', [DashboardController::class, 'getArticles']);
+            Route::put('users/{id}', [DashboardController::class, 'updateUser']);
+            Route::delete('users/{id}', [DashboardController::class, 'deleteUser']);
+        });
     });
     
     // Rutas para admin y moderator
