@@ -7,7 +7,7 @@ use App\Models\Producto;
 
 class Categoria extends Model
 {
-    protected $table = 'categoria_productos';
+    protected $table = 'categorias';
     protected $primaryKey = 'id_categoria';
 
     protected $fillable = ['nombre', 'descripcion'];

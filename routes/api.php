@@ -3,6 +3,8 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\DashboardController;
+use App\Http\Controllers\Api\V1\ProductController;
 
 // Rutas de autenticación
 Route::prefix('v1/auth')->group(function () {
@@ -29,7 +31,27 @@ Route::middleware('jwt.auth')->prefix('v1')->group(function () {
     
     // Rutas solo para admin
     Route::middleware('isAdmin')->group(function () {
-        // Aquí irán rutas de administración específicas
+        // Dashboard administrativo
+        Route::prefix('dashboard')->group(function () {
+            Route::get('stats', [DashboardController::class, 'getStats']);
+            Route::get('users', [DashboardController::class, 'getUsers']);
+            Route::get('products', [DashboardController::class, 'getProducts']);
+            Route::get('articles', [DashboardController::class, 'getArticles']);
+            Route::put('users/{id}', [DashboardController::class, 'updateUser']);
+            Route::delete('users/{id}', [DashboardController::class, 'deleteUser']);
+        });
+
+        // Gestión de productos (Admin)
+        Route::prefix('products')->group(function () {
+            Route::get('/', [ProductController::class, 'index']);
+            Route::post('/', [ProductController::class, 'store']);
+            Route::get('/statistics', [ProductController::class, 'statistics']);
+            Route::post('/bulk-update', [ProductController::class, 'bulkUpdate']);
+            Route::get('/{id}', [ProductController::class, 'show']);
+            Route::put('/{id}', [ProductController::class, 'update']);
+            Route::delete('/{id}', [ProductController::class, 'destroy']);
+            Route::patch('/{id}/stock', [ProductController::class, 'updateStock']);
+        });
     });
     
     // Rutas para admin y moderator
