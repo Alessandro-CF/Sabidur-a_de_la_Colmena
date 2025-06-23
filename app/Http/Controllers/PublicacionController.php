@@ -599,7 +599,7 @@ class PublicacionController extends Controller
         $publicacion->titulo = $request->titulo;
         $publicacion->contenido = $request->contenido;
         $publicacion->usuario = Auth::check() ? Auth::user()->name : 'Usuario API';
-        $publicacion->likes = 0; // This is going to be stored in the database column, not relation
+          $publicacion->likes = 0; // This is going to be stored in the database column, not relation
         
         if ($request->hasFile('imagen')) {
             $imagen = $request->file('imagen');
