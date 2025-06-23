@@ -35,10 +35,22 @@ export default defineConfig({
             interval: 1000,
         },
     },
+    build: {
+        // Asegurar que los assets usen rutas relativas o HTTPS en producción
+        rollupOptions: {
+            output: {
+                assetFileNames: 'assets/[name]-[hash][extname]',
+                chunkFileNames: 'assets/[name]-[hash].js',
+                entryFileNames: 'assets/[name]-[hash].js'
+            }
+        }
+    },
     plugins: [
         laravel({
             input: 'resources/js/app.jsx',
             refresh: true,
+            // Configuración específica para producción con HTTPS
+            detectTls: true,
         }),
         react(),
     ],

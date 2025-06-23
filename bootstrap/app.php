@@ -17,6 +17,11 @@ return Application::configure(basePath: dirname(__DIR__))
             \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
         ]);
 
+        // Middleware global para forzar HTTPS en producción
+        $middleware->web(prepend: [
+            \App\Http\Middleware\ForceHttps::class,
+        ]);
+
         // Registrar aliases de middleware
         $middleware->alias([
             'jwt.auth' => \App\Http\Middleware\JWTAuthenticate::class,
@@ -26,11 +31,13 @@ return Application::configure(basePath: dirname(__DIR__))
             'api.throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
             'role' => \App\Http\Middleware\RoleMiddleware::class,
             'isAdmin' => \App\Http\Middleware\IsAdmin::class,
+            'force.https' => \App\Http\Middleware\ForceHttps::class,
         ]);
 
         // Middleware global para API
         $middleware->api(prepend: [
             'custom.cors',
+            'force.https',
         ]);
         
         $middleware->api(append: [
