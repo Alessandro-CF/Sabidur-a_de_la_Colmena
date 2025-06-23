@@ -4,6 +4,19 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\V1\AuthController;
 
+
+use App\Http\Controllers\API\V1\CategoriaController;
+use App\Http\Controllers\API\V1\ProductoController;
+
+Route::prefix('v1')->group(function () {
+
+    // Rutas de productos
+    Route::apiResource('productos', ProductoController::class);
+    Route::apiResource('categorias', CategoriaController::class);
+
+
+});
+
 // Rutas de autenticación
 Route::prefix('v1/auth')->group(function () {
     Route::post('register', [AuthController::class, 'register']);
