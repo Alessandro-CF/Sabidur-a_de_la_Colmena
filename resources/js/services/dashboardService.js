@@ -109,6 +109,131 @@ class DashboardService {
             throw error;
         }
     }
+
+    // === GESTIÓN DE PRODUCTOS ===
+
+    // Obtener productos con filtros
+    async getProductsManagement(filters = {}) {
+        try {
+            const params = new URLSearchParams();
+            if (filters.search) params.append('search', filters.search);
+            if (filters.categoria && filters.categoria !== 'all') params.append('categoria', filters.categoria);
+            if (filters.status && filters.status !== 'all') params.append('status', filters.status);
+            if (filters.sort_by) params.append('sort_by', filters.sort_by);
+            if (filters.sort_order) params.append('sort_order', filters.sort_order);
+            if (filters.per_page) params.append('per_page', filters.per_page);
+            if (filters.page) params.append('page', filters.page);
+
+            const response = await api.get(`/products?${params.toString()}`);
+            return response.data;
+        } catch (error) {
+            console.error('Error fetching products:', error);
+            throw error;
+        }
+    }
+
+    // Crear producto
+    async createProduct(productData) {
+        try {
+            const formData = new FormData();
+            Object.keys(productData).forEach(key => {
+                if (productData[key] !== null && productData[key] !== undefined) {
+                    formData.append(key, productData[key]);
+                }
+            });
+
+            const response = await api.post('/products', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                }
+            });
+            return response.data;
+        } catch (error) {
+            console.error('Error creating product:', error);
+            throw error;
+        }
+    }
+
+    // Obtener producto por ID
+    async getProduct(productId) {
+        try {
+            const response = await api.get(`/products/${productId}`);
+            return response.data;
+        } catch (error) {
+            console.error('Error fetching product:', error);
+            throw error;
+        }
+    }
+
+    // Actualizar producto
+    async updateProduct(productId, productData) {
+        try {
+            const formData = new FormData();
+            Object.keys(productData).forEach(key => {
+                if (productData[key] !== null && productData[key] !== undefined) {
+                    formData.append(key, productData[key]);
+                }
+            });
+
+            const response = await api.put(`/products/${productId}`, formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                }
+            });
+            return response.data;
+        } catch (error) {
+            console.error('Error updating product:', error);
+            throw error;
+        }
+    }
+
+    // Eliminar producto
+    async deleteProduct(productId) {
+        try {
+            const response = await api.delete(`/products/${productId}`);
+            return response.data;
+        } catch (error) {
+            console.error('Error deleting product:', error);
+            throw error;
+        }
+    }
+
+    // Actualizar stock de producto
+    async updateProductStock(productId, stockData) {
+        try {
+            const response = await api.patch(`/products/${productId}/stock`, stockData);
+            return response.data;
+        } catch (error) {
+            console.error('Error updating product stock:', error);
+            throw error;
+        }
+    }
+
+    // Obtener estadísticas de productos
+    async getProductStatistics() {
+        try {
+            const response = await api.get('/products/statistics');
+            return response.data;
+        } catch (error) {
+            console.error('Error fetching product statistics:', error);
+            throw error;
+        }
+    }
+
+    // Operaciones en lote
+    async bulkUpdateProducts(productIds, action, data = null) {
+        try {
+            const response = await api.post('/products/bulk-update', {
+                product_ids: productIds,
+                action: action,
+                data: data
+            });
+            return response.data;
+        } catch (error) {
+            console.error('Error performing bulk operation:', error);
+            throw error;
+        }
+    }
 }
 
 export default new DashboardService();
