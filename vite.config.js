@@ -1,23 +1,6 @@
 import { defineConfig } from 'vite';
 import laravel from 'laravel-vite-plugin';
 import react from '@vitejs/plugin-react';
-import { networkInterfaces } from 'os';
-
-// Función para obtener la IP local
-function getLocalIP() {
-    const nets = networkInterfaces();
-    for (const name of Object.keys(nets)) {
-        for (const net of nets[name]) {
-            // Buscar IPv4 no interna y que empiece con 192.168
-            if (net.family === 'IPv4' && !net.internal && net.address.startsWith('192.168')) {
-                return net.address;
-            }
-        }
-    }
-    return 'localhost';
-}
-
-const localIP = getLocalIP();
 
 export default defineConfig({
     server: {
@@ -26,7 +9,7 @@ export default defineConfig({
         strictPort: true,
         cors: true,
         hmr: {
-            host: localIP,
+            host: 'localhost', // Corregido: localIP no está definido
             port: 5173,
             protocol: 'ws',
         },

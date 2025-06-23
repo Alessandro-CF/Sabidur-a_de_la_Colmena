@@ -2,63 +2,70 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\V1\AuthController;
-use App\Http\Controllers\Api\V1\DashboardController;
-use App\Http\Controllers\Api\V1\ProductController;
+use App\Http\Controllers\PublicacionController;
+// use App\Http\Controllers\ProductoController;
+// use App\Http\Controllers\PedidoController;
+// use App\Http\Controllers\DetallePedidoController;
+// use App\Http\Controllers\ConsultaController;
+// use App\Http\Controllers\CategoriaController;
+// use App\Http\Controllers\CategoriaArticuloController;
+// use App\Http\Controllers\AsesoriaController;
+// use App\Http\Controllers\ArticuloController;
+use App\Http\Controllers\ApiTokenController;
 
-// Rutas de autenticación
-Route::prefix('v1/auth')->group(function () {
-    Route::post('register', [AuthController::class, 'register']);
-    Route::post('login', [AuthController::class, 'login']);
-    Route::post('logout', [AuthController::class, 'logout'])->middleware('jwt.auth');
-    Route::post('refresh', [AuthController::class, 'refresh'])->middleware('jwt.auth');
-    Route::get('me', [AuthController::class, 'me'])->middleware('jwt.auth');
-    
-    // Rutas de gestión de perfil
-    Route::put('profile', [AuthController::class, 'updateProfile'])->middleware('jwt.auth');
-    Route::put('change-password', [AuthController::class, 'changePassword'])->middleware('jwt.auth');
-    Route::delete('account', [AuthController::class, 'deleteAccount'])->middleware('jwt.auth');
-});
+// --- Rutas API versionadas ---
+Route::prefix('v1')->group(function () {
+    // --- Autenticación y gestión de tokens (solo si usas tokens para comunidad) ---
+    Route::post('/tokens/create', [ApiTokenController::class, 'token']);
+    Route::middleware('auth:sanctum')->prefix('tokens')->group(function () {
+        Route::delete('/revoke-all', [ApiTokenController::class, 'revokeTokens']);
+        Route::delete('/revoke/{tokenId}', [ApiTokenController::class, 'revokeToken']);
+    });
 
-// Rutas protegidas
-Route::middleware('jwt.auth')->prefix('v1')->group(function () {
-    Route::get('/user', function (Request $request) {
-        return response()->json([
-            'success' => true,
-            'user' => $request->user()
-        ]);
+    // --- Usuario autenticado ---
+    Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
+        return $request->user();
     });
-    
-    // Rutas solo para admin
-    Route::middleware('isAdmin')->group(function () {
-        // Dashboard administrativo
-        Route::prefix('dashboard')->group(function () {
-            Route::get('stats', [DashboardController::class, 'getStats']);
-            Route::get('users', [DashboardController::class, 'getUsers']);
-            Route::get('products', [DashboardController::class, 'getProducts']);
-            Route::get('articles', [DashboardController::class, 'getArticles']);
-            Route::put('users/{id}', [DashboardController::class, 'updateUser']);
-            Route::delete('users/{id}', [DashboardController::class, 'deleteUser']);
-        });
 
-        // Gestión de productos (Admin)
-        Route::prefix('products')->group(function () {
-            Route::get('/', [ProductController::class, 'index']);
-            Route::post('/', [ProductController::class, 'store']);
-            Route::get('/statistics', [ProductController::class, 'statistics']);
-            Route::post('/bulk-update', [ProductController::class, 'bulkUpdate']);
-            Route::get('/{id}', [ProductController::class, 'show']);
-            Route::put('/{id}', [ProductController::class, 'update']);
-            Route::delete('/{id}', [ProductController::class, 'destroy']);
-            Route::patch('/{id}/stock', [ProductController::class, 'updateStock']);
-        });
+    // --- Rutas públicas (comunidad) ---
+    // Productos
+    // Route::get('/productos', [ProductoController::class, 'indexApi']);
+    // Route::get('/productos/{producto}', [ProductoController::class, 'showApi']);
+    // Categorías
+    // Route::get('/categorias', [CategoriaController::class, 'indexApi']);
+    // Route::get('/categorias/{categoria}', [CategoriaController::class, 'showApi']);
+
+    // Publicaciones (comunidad)
+    Route::get('/publicaciones', [PublicacionController::class, 'indexApi']);
+    Route::get('/publicaciones/{publicacion}', [PublicacionController::class, 'showApi']);
+
+    // --- Rutas protegidas (requieren autenticación Sanctum, solo comunidad) ---
+    Route::middleware('auth:sanctum')->group(function () {
+        // Publicaciones (comunidad)
+        Route::post('/publicaciones', [PublicacionController::class, 'storeApi']);
+        Route::put('/publicaciones/{publicacion}', [PublicacionController::class, 'updateApi']);
+        Route::delete('/publicaciones/{publicacion}', [PublicacionController::class, 'destroyApi']);
+        Route::post('/publicaciones/{publicacion}/like', [PublicacionController::class, 'likeApi']);
+        Route::post('/publicaciones/{publicacion}/guardar', [PublicacionController::class, 'guardarApi']);
+        Route::get('/publicaciones/usuario/mis-publicaciones', [PublicacionController::class, 'misPublicacionesApi']);
+        Route::get('/publicaciones/usuario/guardados', [PublicacionController::class, 'guardadosApi']);
+
+        // Notificaciones (comunidad)
+        Route::get('/notificaciones', [PublicacionController::class, 'notificacionesApi']);
+        Route::get('/notificaciones/count', [PublicacionController::class, 'contarNotificacionesSinLeerApi']);
+        Route::post('/notificaciones/{notificacion}/leer', [PublicacionController::class, 'leerNotificacionApi']);
+        Route::post('/notificaciones/leer-todas', [PublicacionController::class, 'leerTodasNotificacionesApi']);
+
+        // Pedidos y detalle-pedidos
+        // Route::apiResource('pedidos', PedidoController::class);
+        // Route::apiResource('detalle-pedidos', DetallePedidoController::class);
+
+        // Consultas y asesorías
+        // Route::apiResource('consultas', ConsultaController::class);
+        // Route::apiResource('asesorias', AsesoriaController::class);
+
+        // Artículos y categorías de artículos
+        // Route::apiResource('articulos', ArticuloController::class);
+        // Route::apiResource('categoria-articulos', CategoriaArticuloController::class);
     });
-    
-    // Rutas para admin y moderator
-    Route::middleware('role:admin,moderator')->group(function () {
-        // Aquí irán rutas de moderación
-    });
-    
-    // Aquí irán tus otros controladores de API
-    // Route::apiResource('productos', App\Http\Controllers\Api\V1\ProductosController::class);
 });

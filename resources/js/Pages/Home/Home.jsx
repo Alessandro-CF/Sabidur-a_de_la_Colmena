@@ -64,7 +64,7 @@ export default function Home() {
             <div className="hidden md:block">
               <div className="flex items-center space-x-4">
                 <NavLink href="/" active={true}>Inicio</NavLink>
-                <NavLink href="/articulos">Artículos</NavLink>
+                <NavLink href="/comunidad">comunidad</NavLink>
                 <NavLink href="/productos">Productos</NavLink>
                 <NavLink href="/capacitaciones">Capacitaciones</NavLink>
                 

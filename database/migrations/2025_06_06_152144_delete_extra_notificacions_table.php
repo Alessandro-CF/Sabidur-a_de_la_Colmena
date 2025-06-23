@@ -11,12 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('categorias', function (Blueprint $table) {
-            $table->id('id_categoria');
-            $table->string('nombre');
-            $table->text('descripcion')->nullable();
-            $table->timestamps();
-        });
+        // Esta migración reemplaza la anterior para eliminar la tabla notificacions duplicada
+        if (Schema::hasTable('notificacions')) {
+            Schema::dropIfExists('notificacions');
+        }
     }
 
     /**
@@ -24,6 +22,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('categorias');
+        // No necesitamos recrear esta tabla ya que es una duplicación
     }
 };
