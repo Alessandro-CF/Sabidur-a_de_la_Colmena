@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Head } from '@inertiajs/react';
+import { Eye, EyeOff } from 'lucide-react';
 import authService from '../../services/authService';
 
 // Componente HexagonLogo
@@ -35,6 +36,7 @@ export default function JWTLogin() {
     const [errors, setErrors] = useState({});
     const [isLoading, setIsLoading] = useState(false);
     const [message, setMessage] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
@@ -42,9 +44,15 @@ export default function JWTLogin() {
             ...prev,
             [name]: type === 'checkbox' ? checked : value
         }));
-        // Limpiar error del campo al escribir
+        
+        // Limpiar errores cuando el usuario empiece a escribir
         if (errors[name]) {
             setErrors(prev => ({ ...prev, [name]: null }));
+        }
+        
+        // Limpiar error general cuando el usuario empiece a escribir en email o password
+        if ((name === 'email' || name === 'password') && errors.general) {
+            setErrors(prev => ({ ...prev, general: null }));
         }
     };
 
@@ -59,14 +67,29 @@ export default function JWTLogin() {
             
             if (response.success) {
                 setMessage('¡Inicio de sesión exitoso! Redirigiendo...');
-                // Redirigir al home o dashboard
-                window.location.href = '/';
+                // Esperar un poco antes de redirigir para mostrar el mensaje
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 1000);
             }
         } catch (error) {
+            console.log('Error en login:', error);
+            
             if (error.response?.data?.errors) {
+                // Errores de validación específicos
                 setErrors(error.response.data.errors);
+            } else if (error.response?.data?.message) {
+                // Mensaje de error del servidor (ya en español)
+                setErrors({ general: error.response.data.message });
+            } else if (error.response?.status === 401) {
+                // Error 401 - credenciales incorrectas
+                setErrors({ general: 'Email o contraseña incorrectos. Por favor, verifica tus datos.' });
+            } else if (error.response?.status === 403) {
+                // Error 403 - cuenta desactivada
+                setErrors({ general: 'Tu cuenta ha sido desactivada. Contacta al administrador para reactivarla.' });
             } else {
-                setErrors({ general: error.response?.data?.message || 'Error al iniciar sesión' });
+                // Error genérico
+                setErrors({ general: 'Error al iniciar sesión. Por favor, intenta nuevamente.' });
             }
         } finally {
             setIsLoading(false);
@@ -136,18 +159,31 @@ export default function JWTLogin() {
                                 <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
                                     Contraseña
                                 </label>
-                                <input
-                                    id="password"
-                                    name="password"
-                                    type="password"
-                                    required
-                                    value={formData.password}
-                                    onChange={handleChange}
-                                    className={`appearance-none relative block w-full px-3 py-2 border ${
-                                        errors.password ? 'border-red-300' : 'border-gray-300'
-                                    } placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-amber-500 focus:border-amber-500 focus:z-10 sm:text-sm`}
-                                    placeholder="Tu contraseña"
-                                />
+                                <div className="relative">
+                                    <input
+                                        id="password"
+                                        name="password"
+                                        type={showPassword ? "text" : "password"}
+                                        required
+                                        value={formData.password}
+                                        onChange={handleChange}
+                                        className={`appearance-none relative block w-full px-3 py-2 pr-10 border ${
+                                            errors.password ? 'border-red-300' : 'border-gray-300'
+                                        } placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-amber-500 focus:border-amber-500 focus:z-10 sm:text-sm`}
+                                        placeholder="Tu contraseña"
+                                    />
+                                    <button
+                                        type="button"
+                                        className="absolute inset-y-0 right-0 flex items-center pr-3"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                    >
+                                        {showPassword ? (
+                                            <EyeOff className="h-4 w-4 text-gray-400 hover:text-gray-600" />
+                                        ) : (
+                                            <Eye className="h-4 w-4 text-gray-400 hover:text-gray-600" />
+                                        )}
+                                    </button>
+                                </div>
                                 {errors.password && (
                                     <p className="mt-1 text-sm text-red-600">{errors.password[0]}</p>
                                 )}

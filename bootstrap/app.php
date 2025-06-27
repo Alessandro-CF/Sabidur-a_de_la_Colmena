@@ -31,7 +31,9 @@ return Application::configure(basePath: dirname(__DIR__))
             'api.throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
             'role' => \App\Http\Middleware\RoleMiddleware::class,
             'isAdmin' => \App\Http\Middleware\IsAdmin::class,
+            'user.status' => \App\Http\Middleware\CheckUserStatus::class,
             'force.https' => \App\Http\Middleware\ForceHttps::class,
+
         ]);
 
         // Middleware global para API
