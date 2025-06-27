@@ -34,8 +34,19 @@ api.interceptors.response.use(
     (error) => {
         if (error.response?.status === 401) {
             localStorage.removeItem('jwt_token');
+            localStorage.removeItem('user');
             // Redirigir al login
             window.location.href = '/login';
+        } else if (error.response?.status === 403) {
+            // Cuenta desactivada
+            const errorMessage = error.response?.data?.message;
+            if (errorMessage && errorMessage.includes('deactivated')) {
+                localStorage.removeItem('jwt_token');
+                localStorage.removeItem('user');
+                // Mostrar mensaje de cuenta desactivada y redirigir
+                alert('Your account has been deactivated. Please contact an administrator.');
+                window.location.href = '/login';
+            }
         }
         return Promise.reject(error);
     }

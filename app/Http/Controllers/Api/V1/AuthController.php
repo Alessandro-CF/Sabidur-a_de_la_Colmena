@@ -38,6 +38,7 @@ class AuthController extends Controller
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'role' => $request->role ?? 'user',
+            'estado' => 'activo',
         ]);
 
         $token = JWTAuth::fromUser($user);
@@ -77,6 +78,19 @@ class AuthController extends Controller
                     'message' => 'Invalid credentials'
                 ], 401);
             }
+
+            // Verificar si el usuario está activo
+            $user = auth('api')->user();
+            if ($user->estado !== 'activo') {
+                // Invalidar el token recién creado
+                JWTAuth::invalidate($token);
+                
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Your account has been deactivated. Please contact an administrator.'
+                ], 403);
+            }
+
         } catch (JWTException $e) {
             return response()->json([
                 'success' => false,
@@ -88,7 +102,7 @@ class AuthController extends Controller
             'success' => true,
             'message' => 'Login successful',
             'token' => $token,
-            'user' => auth('api')->user()
+            'user' => $user
         ]);
     }
 
