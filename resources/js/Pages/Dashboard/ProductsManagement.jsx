@@ -51,6 +51,8 @@ function ProductForm({ product, categories, onSubmit, onCancel, isEditing = fals
     id_categoria: '',
     imagen: null
   });
+  const [imagePreview, setImagePreview] = useState(null);
+  const [errors, setErrors] = useState({});
 
   useEffect(() => {
     if (product && isEditing) {
@@ -62,20 +64,60 @@ function ProductForm({ product, categories, onSubmit, onCancel, isEditing = fals
         id_categoria: product.id_categoria || '',
         imagen: null
       });
+      // Si el producto tiene imagen, mostrar vista previa
+      if (product.imagen_url_completa) {
+        setImagePreview(product.imagen_url_completa);
+      }
     }
   }, [product, isEditing]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    e.stopPropagation();
+    setErrors({});
     onSubmit(formData);
   };
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: files ? files[0] : value
-    }));
+    
+    if (name === 'imagen' && files && files[0]) {
+      const file = files[0];
+      
+      // Validar tipo de archivo
+      if (!file.type.startsWith('image/')) {
+        setErrors(prev => ({
+          ...prev,
+          imagen: 'Por favor selecciona solo archivos de imagen'
+        }));
+        return;
+      }
+      
+      // Validar tamaño (2MB)
+      if (file.size > 2 * 1024 * 1024) {
+        setErrors(prev => ({
+          ...prev,
+          imagen: 'La imagen debe ser menor a 2MB'
+        }));
+        return;
+      }
+      
+      // Limpiar errores y crear vista previa
+      setErrors(prev => ({ ...prev, imagen: null }));
+      setFormData(prev => ({ ...prev, [name]: file }));
+      
+      // Crear vista previa
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreview(e.target.result);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: files ? files[0] : value
+      }));
+    }
   };
 
   return (
@@ -169,9 +211,39 @@ function ProductForm({ product, categories, onSubmit, onCancel, isEditing = fals
           type="file"
           name="imagen"
           onChange={handleChange}
-          accept="image/*"
+          accept="image/jpeg,image/png,image/jpg,image/gif,image/webp"
           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
         />
+        {errors.imagen && (
+          <p className="mt-1 text-sm text-red-600">{errors.imagen}</p>
+        )}
+        <p className="mt-1 text-sm text-gray-500">
+          Formatos soportados: JPEG, PNG, JPG, GIF, WebP. Tamaño máximo: 2MB
+        </p>
+        
+        {/* Vista previa de la imagen */}
+        {imagePreview && (
+          <div className="mt-3">
+            <p className="text-sm font-medium text-gray-700 mb-2">Vista previa:</p>
+            <div className="relative inline-block">
+              <img
+                src={imagePreview}
+                alt="Vista previa"
+                className="h-24 w-24 object-cover rounded-lg border border-gray-300"
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  setImagePreview(null);
+                  setFormData(prev => ({ ...prev, imagen: null }));
+                }}
+                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600"
+              >
+                <X size={12} />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="flex justify-end space-x-3 pt-4 border-t">
@@ -375,6 +447,9 @@ export default function ProductsManagement() {
 
   const handleCreateProduct = async (productData) => {
     try {
+      console.log('=== DEBUG: Creating product ===');
+      console.log('Original productData:', productData);
+      
       const formData = new FormData();
       formData.append('nombre', productData.nombre);
       formData.append('descripcion', productData.descripcion);
@@ -383,24 +458,70 @@ export default function ProductsManagement() {
       formData.append('id_categoria', productData.id_categoria);
       
       if (productData.imagen) {
+        console.log('Image file:', productData.imagen);
         formData.append('imagen', productData.imagen);
       }
 
+      console.log('FormData entries:');
+      for (let [key, value] of formData.entries()) {
+        console.log(`${key}:`, value);
+      }
+
+      console.log('About to send request...');
       const response = await dashboardService.createProduct(formData);
+      
       if (response.success) {
         fetchProducts();
         fetchStatistics();
         setShowCreateModal(false);
         alert('Producto creado exitosamente');
+      } else {
+        // Manejar errores de validación
+        if (response.errors) {
+          let errorMessages = [];
+          Object.keys(response.errors).forEach(key => {
+            if (Array.isArray(response.errors[key])) {
+              errorMessages = errorMessages.concat(response.errors[key]);
+            } else {
+              errorMessages.push(response.errors[key]);
+            }
+          });
+          alert('Errores de validación:\n' + errorMessages.join('\n'));
+        } else {
+          alert(response.message || 'Error al crear el producto');
+        }
       }
     } catch (error) {
       console.error('Error creating product:', error);
-      alert('Error al crear el producto');
+      
+      // Manejar diferentes tipos de errores
+      if (error.response && error.response.data) {
+        const errorData = error.response.data;
+        if (errorData.errors) {
+          let errorMessages = [];
+          Object.keys(errorData.errors).forEach(key => {
+            if (Array.isArray(errorData.errors[key])) {
+              errorMessages = errorMessages.concat(errorData.errors[key]);
+            } else {
+              errorMessages.push(errorData.errors[key]);
+            }
+          });
+          alert('Errores de validación:\n' + errorMessages.join('\n'));
+        } else {
+          alert(errorData.message || 'Error al crear el producto');
+        }
+      } else {
+        alert('Error de conexión. Por favor intenta de nuevo.');
+      }
     }
   };
 
   const handleUpdateProduct = async (productData) => {
     try {
+      console.log('=== DEBUG: Updating product ===');
+      console.log('Editing product:', editingProduct);
+      console.log('Product data:', productData);
+      
       const formData = new FormData();
       formData.append('nombre', productData.nombre);
       formData.append('descripcion', productData.descripcion);
@@ -409,20 +530,62 @@ export default function ProductsManagement() {
       formData.append('id_categoria', productData.id_categoria);
       
       if (productData.imagen instanceof File) {
+        console.log('Adding image file to update:', productData.imagen);
         formData.append('imagen', productData.imagen);
       }
 
+      console.log('FormData entries for update:');
+      for (let [key, value] of formData.entries()) {
+        console.log(`${key}:`, value);
+      }
+
       const response = await dashboardService.updateProduct(editingProduct.id_producto, formData);
+      console.log('Update response:', response);
+      
       if (response.success) {
         fetchProducts();
         fetchStatistics();
         setShowEditModal(false);
         setEditingProduct(null);
         alert('Producto actualizado exitosamente');
+      } else {
+        // Manejar errores de validación
+        if (response.errors) {
+          let errorMessages = [];
+          Object.keys(response.errors).forEach(key => {
+            if (Array.isArray(response.errors[key])) {
+              errorMessages = errorMessages.concat(response.errors[key]);
+            } else {
+              errorMessages.push(response.errors[key]);
+            }
+          });
+          alert('Errores de validación:\n' + errorMessages.join('\n'));
+        } else {
+          alert(response.message || 'Error al actualizar el producto');
+        }
       }
     } catch (error) {
       console.error('Error updating product:', error);
-      alert('Error al actualizar el producto');
+      
+      // Manejar diferentes tipos de errores
+      if (error.response && error.response.data) {
+        const errorData = error.response.data;
+        if (errorData.errors) {
+          let errorMessages = [];
+          Object.keys(errorData.errors).forEach(key => {
+            if (Array.isArray(errorData.errors[key])) {
+              errorMessages = errorMessages.concat(errorData.errors[key]);
+            } else {
+              errorMessages.push(errorData.errors[key]);
+            }
+          });
+          alert('Errores de validación:\n' + errorMessages.join('\n'));
+        } else {
+          alert(errorData.message || 'Error al actualizar el producto');
+        }
+      } else {
+        alert('Error de conexión. Por favor intenta de nuevo.');
+      }
     }
   };
 
@@ -551,8 +714,21 @@ export default function ProductsManagement() {
             {filteredProducts.map((product) => (
               <div key={product.id_producto} className="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
                 <div className="aspect-w-16 aspect-h-9 bg-gray-200 rounded-t-lg">
-                  <div className="flex items-center justify-center h-48 bg-amber-50 rounded-t-lg">
-                    <Package size={48} className="text-amber-300" />
+                  <div className="flex items-center justify-center h-48 bg-amber-50 rounded-t-lg overflow-hidden">
+                    {product.imagen_url_completa ? (
+                      <img 
+                        src={product.imagen_url_completa} 
+                        alt={product.nombre}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                          e.target.nextSibling.style.display = 'flex';
+                        }}
+                      />
+                    ) : null}
+                    <div className={`flex items-center justify-center w-full h-full ${product.imagen_url_completa ? 'hidden' : 'flex'}`}>
+                      <Package size={48} className="text-amber-300" />
+                    </div>
                   </div>
                 </div>
                 

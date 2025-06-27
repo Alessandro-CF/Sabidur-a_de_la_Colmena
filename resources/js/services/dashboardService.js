@@ -135,21 +135,41 @@ class DashboardService {
     // Crear producto
     async createProduct(productData) {
         try {
-            const formData = new FormData();
-            Object.keys(productData).forEach(key => {
-                if (productData[key] !== null && productData[key] !== undefined) {
-                    formData.append(key, productData[key]);
-                }
-            });
+            console.log('=== DEBUG: DashboardService.createProduct ===');
+            console.log('Received productData:', productData);
+            console.log('Is FormData?', productData instanceof FormData);
+            
+            // Si ya es FormData, usarlo directamente
+            let dataToSend;
+            let headers = {};
+            
+            if (productData instanceof FormData) {
+                dataToSend = productData;
+                console.log('Using FormData directly');
+                // No establecer Content-Type para FormData, el navegador lo manejará automáticamente
+            } else {
+                console.log('Creating new FormData from object');
+                // Si es un objeto, crear FormData
+                const formData = new FormData();
+                Object.keys(productData).forEach(key => {
+                    if (productData[key] !== null && productData[key] !== undefined) {
+                        formData.append(key, productData[key]);
+                    }
+                });
+                dataToSend = formData;
+                // No establecer Content-Type para FormData, el navegador lo manejará automáticamente
+            }
 
-            const response = await api.post('/products', formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                }
-            });
+            console.log('Final dataToSend:', dataToSend);
+            console.log('Making API request...');
+
+            const response = await api.post('/products', dataToSend, { headers });
+            
+            console.log('API Response:', response.data);
             return response.data;
         } catch (error) {
             console.error('Error creating product:', error);
+            console.error('Error response:', error.response?.data);
             throw error;
         }
     }
@@ -168,21 +188,47 @@ class DashboardService {
     // Actualizar producto
     async updateProduct(productId, productData) {
         try {
-            const formData = new FormData();
-            Object.keys(productData).forEach(key => {
-                if (productData[key] !== null && productData[key] !== undefined) {
-                    formData.append(key, productData[key]);
-                }
-            });
+            console.log('=== DEBUG: DashboardService.updateProduct ===');
+            console.log('Product ID:', productId);
+            console.log('Received productData:', productData);
+            
+            // Si ya es FormData, usarlo directamente
+            let dataToSend;
+            let headers = {};
+            
+            if (productData instanceof FormData) {
+                dataToSend = productData;
+                // Agregar método spoofing para Laravel
+                dataToSend.append('_method', 'PUT');
+                console.log('Using FormData directly for update with method spoofing');
+            } else {
+                console.log('Creating new FormData from object for update');
+                const formData = new FormData();
+                Object.keys(productData).forEach(key => {
+                    if (productData[key] !== null && productData[key] !== undefined) {
+                        formData.append(key, productData[key]);
+                    }
+                });
+                // Agregar método spoofing para Laravel
+                formData.append('_method', 'PUT');
+                dataToSend = formData;
+            }
 
-            const response = await api.put(`/products/${productId}`, formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                }
-            });
+            console.log('Making update API request with POST (method spoofing)...');
+            
+            // Debug: mostrar el contenido de FormData
+            console.log('FormData contents before sending:');
+            for (let [key, value] of dataToSend.entries()) {
+                console.log(`${key}:`, value);
+            }
+            
+            // Usar POST con method spoofing en lugar de PUT para FormData
+            const response = await api.post(`/products/${productId}`, dataToSend, { headers });
+            console.log('Update API Response:', response.data);
             return response.data;
         } catch (error) {
             console.error('Error updating product:', error);
+            console.error('Update error response:', error.response?.data);
             throw error;
         }
     }
@@ -190,10 +236,15 @@ class DashboardService {
     // Eliminar producto
     async deleteProduct(productId) {
         try {
+            console.log('=== DEBUG: DashboardService.deleteProduct ===');
+            console.log('Product ID:', productId);
+            
             const response = await api.delete(`/products/${productId}`);
+            console.log('Delete API Response:', response.data);
             return response.data;
         } catch (error) {
             console.error('Error deleting product:', error);
+            console.error('Delete error response:', error.response?.data);
             throw error;
         }
     }
