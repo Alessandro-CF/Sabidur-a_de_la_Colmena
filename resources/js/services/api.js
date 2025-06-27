@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-// Configuración base de Axios para Laragon
+// Configuración base de Axios para Laravel
 const api = axios.create({
     baseURL: `${window.location.protocol}//${window.location.host}/api/v1`,
     timeout: 15000,
