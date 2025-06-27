@@ -49,6 +49,7 @@ Route::middleware('jwt.auth')->prefix('v1')->group(function () {
             Route::post('/bulk-update', [ProductController::class, 'bulkUpdate']);
             Route::get('/{id}', [ProductController::class, 'show']);
             Route::put('/{id}', [ProductController::class, 'update']);
+            Route::post('/{id}', [ProductController::class, 'update']); // Para method spoofing con FormData
             Route::delete('/{id}', [ProductController::class, 'destroy']);
             Route::patch('/{id}/stock', [ProductController::class, 'updateStock']);
         });

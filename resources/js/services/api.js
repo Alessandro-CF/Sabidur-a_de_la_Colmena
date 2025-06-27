@@ -5,7 +5,6 @@ const api = axios.create({
     baseURL: `${window.location.protocol}//${window.location.host}/api/v1`,
     timeout: 15000,
     headers: {
-        'Content-Type': 'application/json',
         'Accept': 'application/json',
         'X-Requested-With': 'XMLHttpRequest',
     },
@@ -18,6 +17,12 @@ api.interceptors.request.use((config) => {
     if (token) {
         config.headers.Authorization = `Bearer ${token}`;
     }
+    
+    // Solo establecer Content-Type como JSON si no es FormData
+    if (!(config.data instanceof FormData)) {
+        config.headers['Content-Type'] = 'application/json';
+    }
+    
     return config;
 }, (error) => {
     return Promise.reject(error);

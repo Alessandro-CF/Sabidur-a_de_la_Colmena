@@ -3,7 +3,14 @@
     "type": "module",
     "scripts": {
         "build": "vite build",
-        "dev": "vite"
+        "dev": "vite",
+        "fresh": "./scripts/fresh-install.sh",
+        "fresh-clean": "php artisan migrate:fresh-clean",
+        "fresh-seed": "php artisan migrate:fresh-clean --seed",
+        "clean-images": "php artisan images:clean",
+        "clear-all-images": "php artisan images:clear-all",
+        "post-clean": "./scripts/post-migrate-clean.sh",
+        "storage-info": "php artisan storage:analyze"
     },
     "devDependencies": {
         "@headlessui/react": "^2.0.0",
