@@ -66,7 +66,7 @@ class AuthController extends Controller
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Validation errors',
+                'message' => 'Errores de validación',
                 'errors' => $validator->errors()
             ], 422);
         }
@@ -75,7 +75,7 @@ class AuthController extends Controller
             if (!$token = JWTAuth::attempt($credentials)) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Invalid credentials'
+                    'message' => 'Credenciales incorrectas. Verifica tu email y contraseña.'
                 ], 401);
             }
 
@@ -87,14 +87,15 @@ class AuthController extends Controller
                 
                 return response()->json([
                     'success' => false,
-                    'message' => 'Your account has been deactivated. Please contact an administrator.'
+                    'message' => 'Tu cuenta ha sido desactivada. Contacta al administrador para reactivarla.'
                 ], 403);
             }
 
         } catch (JWTException $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Could not create token'
+                // 'message' => 'No se pudo crear el token de autenticación'
+                'message' => 'Tu cuenta ha sido desactivada. Contacta al administrador para reactivarla.'
             ], 500);
         }
 

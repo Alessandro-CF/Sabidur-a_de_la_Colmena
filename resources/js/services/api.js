@@ -33,18 +33,22 @@ api.interceptors.response.use(
     (response) => response,
     (error) => {
         if (error.response?.status === 401) {
-            localStorage.removeItem('jwt_token');
-            localStorage.removeItem('user');
-            // Redirigir al login
-            window.location.href = '/login';
+            // Solo redirigir si no estamos en la página de login o registro
+            const currentPath = window.location.pathname;
+            if (currentPath !== '/login' && currentPath !== '/register') {
+                localStorage.removeItem('jwt_token');
+                localStorage.removeItem('user');
+                // Redirigir al login
+                window.location.href = '/login';
+            }
         } else if (error.response?.status === 403) {
             // Cuenta desactivada
             const errorMessage = error.response?.data?.message;
-            if (errorMessage && errorMessage.includes('deactivated')) {
+            if (errorMessage && (errorMessage.includes('desactivada') || errorMessage.includes('deactivated'))) {
                 localStorage.removeItem('jwt_token');
                 localStorage.removeItem('user');
                 // Mostrar mensaje de cuenta desactivada y redirigir
-                alert('Your account has been deactivated. Please contact an administrator.');
+                alert('Tu cuenta ha sido desactivada. Contacta al administrador para reactivarla.');
                 window.location.href = '/login';
             }
         }

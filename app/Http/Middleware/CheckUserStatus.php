@@ -32,7 +32,7 @@ class CheckUserStatus
                 
                 return response()->json([
                     'success' => false,
-                    'message' => 'Your account has been deactivated. Please contact an administrator.'
+                    'message' => 'Tu cuenta ha sido desactivada. Contacta al administrador para reactivarla.'
                 ], 403);
             }
         }

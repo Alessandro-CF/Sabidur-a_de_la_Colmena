@@ -44,9 +44,15 @@ export default function JWTLogin() {
             ...prev,
             [name]: type === 'checkbox' ? checked : value
         }));
-        // Limpiar error del campo al escribir
+        
+        // Limpiar errores cuando el usuario empiece a escribir
         if (errors[name]) {
             setErrors(prev => ({ ...prev, [name]: null }));
+        }
+        
+        // Limpiar error general cuando el usuario empiece a escribir en email o password
+        if ((name === 'email' || name === 'password') && errors.general) {
+            setErrors(prev => ({ ...prev, general: null }));
         }
     };
 
@@ -61,14 +67,29 @@ export default function JWTLogin() {
             
             if (response.success) {
                 setMessage('¡Inicio de sesión exitoso! Redirigiendo...');
-                // Redirigir al home o dashboard
-                window.location.href = '/';
+                // Esperar un poco antes de redirigir para mostrar el mensaje
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 1000);
             }
         } catch (error) {
+            console.log('Error en login:', error);
+            
             if (error.response?.data?.errors) {
+                // Errores de validación específicos
                 setErrors(error.response.data.errors);
+            } else if (error.response?.data?.message) {
+                // Mensaje de error del servidor (ya en español)
+                setErrors({ general: error.response.data.message });
+            } else if (error.response?.status === 401) {
+                // Error 401 - credenciales incorrectas
+                setErrors({ general: 'Email o contraseña incorrectos. Por favor, verifica tus datos.' });
+            } else if (error.response?.status === 403) {
+                // Error 403 - cuenta desactivada
+                setErrors({ general: 'Tu cuenta ha sido desactivada. Contacta al administrador para reactivarla.' });
             } else {
-                setErrors({ general: error.response?.data?.message || 'Error al iniciar sesión' });
+                // Error genérico
+                setErrors({ general: 'Error al iniciar sesión. Por favor, intenta nuevamente.' });
             }
         } finally {
             setIsLoading(false);
