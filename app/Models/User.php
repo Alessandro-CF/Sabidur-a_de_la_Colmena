@@ -27,6 +27,7 @@ class User extends Authenticatable implements JWTSubject
         'email',
         'password',
         'role',
+        'estado',
     ];
 
     /**
@@ -49,6 +50,7 @@ class User extends Authenticatable implements JWTSubject
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'estado' => 'string',
         ];
     }
 
@@ -92,6 +94,7 @@ class User extends Authenticatable implements JWTSubject
         return [
             'role' => $this->role,
             'name' => $this->name,
+            'estado' => $this->estado,
         ];
     }
 
@@ -117,5 +120,63 @@ class User extends Authenticatable implements JWTSubject
     public function isModerator()
     {
         return $this->role === 'moderator';
+    }
+
+    /**
+     * Check if user is active
+     */
+    public function isActive()
+    {
+        return $this->estado === 'activo';
+    }
+
+    /**
+     * Check if user is inactive
+     */
+    public function isInactive()
+    {
+        return $this->estado === 'inactivo';
+    }
+
+    /**
+     * Activate user
+     */
+    public function activate()
+    {
+        $this->update(['estado' => 'activo']);
+    }
+
+    /**
+     * Deactivate user
+     */
+    public function deactivate()
+    {
+        $this->update(['estado' => 'inactivo']);
+    }
+
+    /**
+     * Toggle user status
+     */
+    public function toggleStatus()
+    {
+        $newStatus = $this->isActive() ? 'inactivo' : 'activo';
+        $this->update(['estado' => $newStatus]);
+        return $newStatus;
+    }
+
+    /**
+     * Scope to get only active users
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('estado', 'activo');
+    }
+
+    /**
+     * Scope to get only inactive users
+     */
+    public function scopeInactive($query)
+    {
+        return $query->where('estado', 'inactivo');
     }
 }
