@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\DashboardController;
 use App\Http\Controllers\Api\V1\ProductController;
+use App\Http\Controllers\Api\V1\UserController;
 
 // Rutas de autenticación
 Route::prefix('v1/auth')->group(function () {
@@ -52,6 +53,19 @@ Route::middleware('jwt.auth')->prefix('v1')->group(function () {
             Route::post('/{id}', [ProductController::class, 'update']); // Para method spoofing con FormData
             Route::delete('/{id}', [ProductController::class, 'destroy']);
             Route::patch('/{id}/stock', [ProductController::class, 'updateStock']);
+        });
+
+        // Gestión de usuarios (Admin)
+        Route::prefix('users')->group(function () {
+            Route::get('/', [UserController::class, 'index']);
+            Route::post('/', [UserController::class, 'store']);
+            Route::get('/create', [UserController::class, 'create']);
+            Route::get('/statistics', [UserController::class, 'statistics']);
+            Route::post('/bulk-update-status', [UserController::class, 'bulkUpdateStatus']);
+            Route::get('/{id}', [UserController::class, 'show']);
+            Route::put('/{id}', [UserController::class, 'update']);
+            Route::delete('/{id}', [UserController::class, 'destroy']);
+            Route::patch('/{id}/toggle-status', [UserController::class, 'toggleStatus']);
         });
     });
     

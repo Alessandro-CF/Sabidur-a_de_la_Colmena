@@ -20,6 +20,7 @@ class UserSeeder extends Seeder
             'email' => 'admin@sabiduria.com',
             'password' => Hash::make('password123'),
             'role' => 'admin',
+            'estado' => 'activo',
         ]);
 
         User::create([
@@ -27,6 +28,7 @@ class UserSeeder extends Seeder
             'email' => 'aguilaxzc@gmail.com',
             'password' => Hash::make('petizaesfea12'),
             'role' => 'admin',
+            'estado' => 'activo',
         ]);
 
         // Crear usuario moderador
@@ -35,6 +37,7 @@ class UserSeeder extends Seeder
             'email' => 'moderator@sabiduria.com',
             'password' => Hash::make('password123'),
             'role' => 'moderator',
+            'estado' => 'activo',
         ]);
 
         // Crear usuario normal
@@ -43,6 +46,32 @@ class UserSeeder extends Seeder
             'email' => 'user@sabiduria.com',
             'password' => Hash::make('password123'),
             'role' => 'user',
+            'estado' => 'activo',
+        ]);
+
+        // Crear algunos usuarios adicionales para pruebas
+        User::create([
+            'name' => 'Juan Pérez',
+            'email' => 'juan@example.com',
+            'password' => Hash::make('password123'),
+            'role' => 'user',
+            'estado' => 'activo',
+        ]);
+
+        User::create([
+            'name' => 'María González',
+            'email' => 'maria@example.com',
+            'password' => Hash::make('password123'),
+            'role' => 'user',
+            'estado' => 'inactivo', // Usuario inactivo para pruebas
+        ]);
+
+        User::create([
+            'name' => 'Carlos Rodríguez',
+            'email' => 'carlos@example.com',
+            'password' => Hash::make('password123'),
+            'role' => 'moderator',
+            'estado' => 'activo',
         ]);
     }
 }

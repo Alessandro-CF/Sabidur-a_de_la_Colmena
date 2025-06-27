@@ -8,9 +8,17 @@ import {
   Eye,
   UserCheck,
   UserX,
-  MoreVertical
+  MoreVertical,
+  AlertTriangle,
+  X,
+  Shield,
+  ShieldCheck,
+  Users,
+  UserPlus,
+  CheckCircle,
+  XCircle
 } from 'lucide-react';
-import dashboardService from '../../services/dashboardService';
+import userService from '../../services/userService';
 
 export default function UsersManagement() {
   const [users, setUsers] = useState([]);
