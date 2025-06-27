@@ -387,6 +387,7 @@ export default function ProductsManagement() {
       }
 
       const response = await dashboardService.createProduct(formData);
+      
       if (response.success) {
         fetchProducts();
         fetchStatistics();

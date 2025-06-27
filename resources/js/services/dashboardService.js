@@ -135,18 +135,26 @@ class DashboardService {
     // Crear producto
     async createProduct(productData) {
         try {
-            const formData = new FormData();
-            Object.keys(productData).forEach(key => {
-                if (productData[key] !== null && productData[key] !== undefined) {
-                    formData.append(key, productData[key]);
-                }
-            });
+            // Si ya es FormData, usarlo directamente
+            let dataToSend;
+            let headers = {};
+            
+            if (productData instanceof FormData) {
+                dataToSend = productData;
+                // No establecer Content-Type para FormData, el navegador lo manejará automáticamente
+            } else {
+                // Si es un objeto, crear FormData
+                const formData = new FormData();
+                Object.keys(productData).forEach(key => {
+                    if (productData[key] !== null && productData[key] !== undefined) {
+                        formData.append(key, productData[key]);
+                    }
+                });
+                dataToSend = formData;
+                // No establecer Content-Type para FormData, el navegador lo manejará automáticamente
+            }
 
-            const response = await api.post('/products', formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                }
-            });
+            const response = await api.post('/products', dataToSend, { headers });
             return response.data;
         } catch (error) {
             console.error('Error creating product:', error);
