@@ -492,6 +492,9 @@ export default function Products() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {filteredProducts.map((product, index) => {
                   const colors = ['#F8F32B', '#558C8C', '#C06E52', '#FA9500', '#8B5CF6', '#EF4444'];
+                  // Encontrar la categoría actual para obtener su nombre
+                  const currentCategory = categories.find(cat => cat.id === activeCategory);
+                  
                   return (
                     <ProductCard 
                       key={product.id_producto} 
@@ -502,10 +505,10 @@ export default function Products() {
                         image: product.imagen_url_completa || "/api/placeholder/300/250",
                         price: `$${parseFloat(product.precio).toFixed(2)}`,
                         stock: product.stock,
-                        category: product.categoria?.nombre,
+                        category: currentCategory?.name || 'Sin categoría',
                         characteristics: [
                           `Stock: ${product.stock} unidades`,
-                          `Categoría: ${product.categoria?.nombre}`,
+                          `Categoría: ${currentCategory?.name || 'Sin categoría'}`,
                           `Precio: $${parseFloat(product.precio).toFixed(2)}`
                         ],
                         benefits: product.descripcion
@@ -519,10 +522,10 @@ export default function Products() {
                         image: product.imagen_url_completa || "/api/placeholder/300/250",
                         price: `$${parseFloat(product.precio).toFixed(2)}`,
                         stock: product.stock,
-                        category: product.categoria?.nombre,
+                        category: currentCategory?.name || 'Sin categoría',
                         characteristics: [
                           `Stock: ${product.stock} unidades`,
-                          `Categoría: ${product.categoria?.nombre}`,
+                          `Categoría: ${currentCategory?.name || 'Sin categoría'}`,
                           `Precio: $${parseFloat(product.precio).toFixed(2)}`,
                           `Creado: ${new Date(product.created_at).toLocaleDateString()}`
                         ],

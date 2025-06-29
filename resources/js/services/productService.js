@@ -1,48 +1,10 @@
-import axios from 'axios';
-import authService from './authService';
-
-// Configurar la base URL para las API
-const API_BASE_URL = 'http://localhost:8000/api/v1';
-
-// Crear instancia de axios con configuración base
-const apiClient = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  }
-});
-
-// Interceptor para agregar token de autenticación
-apiClient.interceptors.request.use(
-  (config) => {
-    const token = authService.getToken();
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
-
-// Interceptor para manejar respuestas y errores
-apiClient.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      authService.removeToken();
-      window.location.href = '/login';
-    }
-    return Promise.reject(error);
-  }
-);
+import api from './api';
 
 const productService = {
   // Obtener todas las categorías
   async getCategories() {
     try {
-      const response = await axios.get(`${API_BASE_URL}/categories`);
+      const response = await api.get('/public/categories');
       return response.data;
     } catch (error) {
       console.error('Error fetching categories:', error);
@@ -53,7 +15,7 @@ const productService = {
   // Obtener productos con filtros
   async getProducts(params = {}) {
     try {
-      const response = await axios.get(`${API_BASE_URL}/products`, { params });
+      const response = await api.get('/products', { params });
       return response.data;
     } catch (error) {
       console.error('Error fetching products:', error);
@@ -64,7 +26,7 @@ const productService = {
   // Obtener productos públicos (sin autenticación)
   async getPublicProducts(params = {}) {
     try {
-      const response = await axios.get(`${API_BASE_URL}/public/products`, { params });
+      const response = await api.get('/public/products', { params });
       return response.data;
     } catch (error) {
       console.error('Error fetching public products:', error);
@@ -75,7 +37,7 @@ const productService = {
   // Obtener categorías públicas (sin autenticación)
   async getPublicCategories() {
     try {
-      const response = await axios.get(`${API_BASE_URL}/public/categories`);
+      const response = await api.get('/public/categories');
       return response.data;
     } catch (error) {
       console.error('Error fetching public categories:', error);
@@ -86,7 +48,7 @@ const productService = {
   // Obtener productos por categoría con rotación
   async getProductsByCategory(params = {}) {
     try {
-      const response = await axios.get(`${API_BASE_URL}/public/products/by-category`, { params });
+      const response = await api.get('/public/products/by-category', { params });
       return response.data;
     } catch (error) {
       console.error('Error fetching products by category:', error);
@@ -94,10 +56,21 @@ const productService = {
     }
   },
 
+  // Obtener productos destacados
+  async getFeaturedProducts(params = {}) {
+    try {
+      const response = await api.get('/public/products/featured', { params });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching featured products:', error);
+      throw error;
+    }
+  },
+
   // Obtener un producto específico
   async getProduct(id) {
     try {
-      const response = await axios.get(`${API_BASE_URL}/products/${id}`);
+      const response = await api.get(`/products/${id}`);
       return response.data;
     } catch (error) {
       console.error('Error fetching product:', error);
@@ -108,7 +81,7 @@ const productService = {
   // Obtener estadísticas de productos
   async getProductStatistics() {
     try {
-      const response = await apiClient.get('/products/statistics');
+      const response = await api.get('/products/statistics');
       return response.data;
     } catch (error) {
       console.error('Error fetching product statistics:', error);
@@ -126,7 +99,7 @@ const productService = {
         }
       });
 
-      const response = await apiClient.post('/products', formData, {
+      const response = await api.post('/products', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         }
@@ -149,7 +122,7 @@ const productService = {
       });
       formData.append('_method', 'PUT');
 
-      const response = await apiClient.post(`/products/${id}`, formData, {
+      const response = await api.post(`/products/${id}`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         }
@@ -164,7 +137,7 @@ const productService = {
   // Eliminar producto (solo admin)
   async deleteProduct(id) {
     try {
-      const response = await apiClient.delete(`/products/${id}`);
+      const response = await api.delete(`/products/${id}`);
       return response.data;
     } catch (error) {
       console.error('Error deleting product:', error);
@@ -175,7 +148,7 @@ const productService = {
   // Actualizar stock de producto
   async updateStock(id, stockData) {
     try {
-      const response = await apiClient.patch(`/products/${id}/stock`, stockData);
+      const response = await api.patch(`/products/${id}/stock`, stockData);
       return response.data;
     } catch (error) {
       console.error('Error updating stock:', error);
@@ -186,7 +159,7 @@ const productService = {
   // Operaciones en lote
   async bulkUpdate(bulkData) {
     try {
-      const response = await apiClient.post('/products/bulk-update', bulkData);
+      const response = await api.post('/products/bulk-update', bulkData);
       return response.data;
     } catch (error) {
       console.error('Error in bulk operation:', error);
