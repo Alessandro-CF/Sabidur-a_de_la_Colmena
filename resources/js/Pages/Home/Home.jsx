@@ -168,18 +168,20 @@ export default function Home() {
                 que contribuye a la biodiversidad y al equilibrio de nuestros ecosistemas.
               </p>
               <div className="flex flex-wrap gap-4">
-                <button 
-                  className="px-6 py-3 rounded-lg font-medium transition" 
+                <Link 
+                  href="/articulos"
+                  className="px-6 py-3 rounded-lg font-medium transition hover:opacity-90 inline-block text-center" 
                   style={{ backgroundColor: '#FA9500', color: '#EFF7FF' }}
                 >
                   Explorar Artículos
-                </button>
-                <button 
-                  className="px-6 py-3 rounded-lg font-medium border-2 transition"
+                </Link>
+                <Link 
+                  href="/productos"
+                  className="px-6 py-3 rounded-lg font-medium border-2 transition hover:bg-opacity-10 inline-block text-center"
                   style={{ borderColor: '#558C8C', color: '#558C8C' }}
                 >
                   Ver Productos
-                </button>
+                </Link>
               </div>
             </div>
             
