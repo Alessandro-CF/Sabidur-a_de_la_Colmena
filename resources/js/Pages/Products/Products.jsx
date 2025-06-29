@@ -2,136 +2,10 @@ import { useState, useEffect } from 'react';
 import { Link } from '@inertiajs/react';
 import { Menu, X, ChevronDown, User, ExternalLink, Info, ShoppingCart, Filter, Heart, Eye } from 'lucide-react';
 import authService from '../../services/authService';
+import productService from '../../services/productService';
 import { ProductModal } from './ProductModal';
 import { TestimonialsSection } from './TestimonialsSection';
 import { ProductCard, ProductFilters, ProductSearch, ProductStats } from './ProductComponents';
-
-// Datos de productos simulados
-const productsData = {
-  mieles: [
-    {
-      id: 1,
-      name: "Miel de Flores Silvestres",
-      description: "Miel multifloral de bosque nativo, recolectada durante la primavera.",
-      image: "/api/placeholder/300/250",
-      characteristics: ["Origen: Bosque nativo", "Presentación: 500g", "Textura: Cristalizada", "Sabor: Floral intenso"],
-      benefits: "Rica en antioxidantes naturales y propiedades antibacterianas.",
-      price: "$15.99"
-    },
-    {
-      id: 2,
-      name: "Miel de Eucalipto",
-      description: "Miel monofloral con propiedades expectorantes y sabor mentolado.",
-      image: "/api/placeholder/300/250",
-      characteristics: ["Origen: Plantación de eucalipto", "Presentación: 250g", "Textura: Líquida", "Sabor: Mentolado"],
-      benefits: "Ideal para problemas respiratorios y como expectorante natural.",
-      price: "$12.99"
-    },
-    {
-      id: 3,
-      name: "Miel de Manuka",
-      description: "Miel premium con excepcionales propiedades medicinales.",
-      image: "/api/placeholder/300/250",
-      characteristics: ["Origen: Nueva Zelanda", "Presentación: 250g", "MGO: 400+", "Textura: Cremosa"],
-      benefits: "Potente actividad antimicrobiana, ideal para heridas y problemas digestivos.",
-      price: "$45.99"
-    }
-  ],
-  derivados: [
-    {
-      id: 4,
-      name: "Propóleo Puro",
-      description: "Extracto de propóleo natural con alta concentración de flavonoides.",
-      image: "/api/placeholder/300/250",
-      characteristics: ["Concentración: 30%", "Presentación: 30ml", "Origen: Colmenas orgánicas", "Método: Extracción en frío"],
-      benefits: "Fortalece el sistema inmunológico y tiene propiedades antiinflamatorias.",
-      price: "$22.99"
-    },
-    {
-      id: 5,
-      name: "Polen de Abeja",
-      description: "Súper alimento natural rico en proteínas, vitaminas y minerales.",
-      image: "/api/placeholder/300/250",
-      characteristics: ["Presentación: 150g", "Origen: Multifloral", "Proceso: Secado natural", "Pureza: 99%"],
-      benefits: "Fuente completa de proteínas, vitaminas del complejo B y aminoácidos esenciales.",
-      price: "$18.99"
-    },
-    {
-      id: 6,
-      name: "Jalea Real",
-      description: "Nutritivo suplemento natural conocido como el alimento de las reinas.",
-      image: "/api/placeholder/300/250",
-      characteristics: ["Presentación: 20g", "Frescura: Liofilizada", "Origen: Colmenas seleccionadas", "Pureza: Premium"],
-      benefits: "Energizante natural, mejora la vitalidad y fortalece el sistema nervioso.",
-      price: "$35.99"
-    }
-  ],
-  cosmetica: [
-    {
-      id: 7,
-      name: "Crema Facial con Miel",
-      description: "Crema hidratante natural con miel pura y extractos botánicos.",
-      image: "/api/placeholder/300/250",
-      characteristics: ["Volumen: 50ml", "Base: Miel orgánica", "Ingredientes: 100% naturales", "Tipo: Hidratante"],
-      benefits: "Hidrata profundamente, reduce signos de envejecimiento y suaviza la piel.",
-      price: "$28.99"
-    },
-    {
-      id: 8,
-      name: "Bálsamo Labial con Cera",
-      description: "Protector labial natural elaborado con cera de abejas pura.",
-      image: "/api/placeholder/300/250",
-      characteristics: ["Presentación: 4.5g", "Base: Cera de abejas", "Aroma: Natural", "Protección: UV"],
-      benefits: "Protege y repara labios secos, proporciona hidratación duradera.",
-      price: "$8.99"
-    },
-    {
-      id: 9,
-      name: "Jabón de Propóleo",
-      description: "Jabón artesanal con propóleo para pieles sensibles y problemáticas.",
-      image: "/api/placeholder/300/250",
-      characteristics: ["Peso: 100g", "Base: Propóleo", "Proceso: Artesanal", "pH: Neutro"],
-      benefits: "Propiedades antibacterianas, ideal para acné y dermatitis.",
-      price: "$12.99"
-    }
-  ],
-  accesorios: [
-    {
-      id: 10,
-      name: "Cucharón de Miel de Madera",
-      description: "Cucharón tradicional de madera para servir miel de forma elegante.",
-      image: "/api/placeholder/300/250",
-      characteristics: ["Material: Madera de haya", "Longitud: 15cm", "Acabado: Natural", "Tratamiento: Aceite natural"],
-      benefits: "No altera el sabor de la miel, diseño ergonómico y duradero.",
-      price: "$6.99"
-    },
-    {
-      id: 11,
-      name: "Tarro de Cristal Premium",
-      description: "Elegante envase de cristal para almacenar y presentar miel.",
-      image: "/api/placeholder/300/250",
-      characteristics: ["Capacidad: 500ml", "Material: Cristal borosilicato", "Tapa: Hermética", "Diseño: Hexagonal"],
-      benefits: "Conserva la frescura, resistente a cambios de temperatura.",
-      price: "$14.99"
-    },
-    {
-      id: 12,
-      name: "Kit de Degustación",
-      description: "Set completo para catar diferentes tipos de miel como un experto.",
-      image: "/api/placeholder/300/250",
-      characteristics: ["Incluye: 6 variedades", "Tamaño: 50ml c/u", "Guía: Incluida", "Presentación: Caja premium"],
-      benefits: "Perfecto para descubrir nuevos sabores y regalar a amantes de la miel.",
-      price: "$49.99"
-    }
-  ]
-};
-
-const categories = [
-  { id: 'mieles', name: 'Mieles', icon: '🍯', color: '#F8F32B' },
-  { id: 'derivados', name: 'Derivados', icon: '🌟', color: '#558C8C' },
-  { id: 'cosmetica', name: 'Cosmética Natural', icon: '🧴', color: '#C06E52' },
-  { id: 'accesorios', name: 'Accesorios', icon: '🥄', color: '#FA9500' }
-];
 
 // Componente principal
 export default function Products() {
@@ -139,11 +13,17 @@ export default function Products() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState(null);
-  const [activeCategory, setActiveCategory] = useState('mieles');
+  const [activeCategory, setActiveCategory] = useState(0);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [favorites, setFavorites] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilter, setActiveFilter] = useState('todos');
+  
+  // Estados para datos del backend
+  const [categories, setCategories] = useState([]);
+  const [categoryProducts, setCategoryProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   // Verificar estado de autenticación al cargar el componente
   useEffect(() => {
@@ -163,6 +43,50 @@ export default function Products() {
     };
 
     checkAuthStatus();
+  }, []);
+
+  // Cargar datos del backend
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        // Cargar productos por categoría con rotación
+        const response = await productService.getProductsByCategory();
+        
+        if (response.success) {
+          setCategoryProducts(response.data);
+          
+          // Extraer categorías únicas
+          const uniqueCategories = response.data.map(item => ({
+            id: item.category.id_categoria,
+            name: item.category.nombre,
+            description: item.category.descripcion,
+            productsCount: item.products.length
+          }));
+          
+          setCategories(uniqueCategories);
+          
+          // Establecer la primera categoría como activa
+          if (uniqueCategories.length > 0) {
+            setActiveCategory(uniqueCategories[0].id);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading data:', error);
+        setError('Error al cargar los datos. Por favor, intenta nuevamente.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+    
+    // Recargar datos cada hora para la rotación
+    const interval = setInterval(loadData, 60 * 60 * 1000); // 1 hora
+    
+    return () => clearInterval(interval);
   }, []);
 
   const handleLogout = async () => {
@@ -197,28 +121,35 @@ export default function Products() {
 
   // Filtrar productos basado en búsqueda y filtros
   const getFilteredProducts = () => {
-    let products = productsData[activeCategory] || [];
+    const categoryData = categoryProducts.find(item => item.category.id_categoria === activeCategory);
+    let products = categoryData ? categoryData.products : [];
     
     // Filtrar por término de búsqueda
     if (searchTerm) {
       products = products.filter(product =>
-        product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.description.toLowerCase().includes(searchTerm.toLowerCase())
+        product.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        product.descripcion.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
     
     // Filtrar por tipo
     switch (activeFilter) {
       case 'favoritos':
-        products = products.filter(product => favorites.includes(product.id));
+        products = products.filter(product => favorites.includes(product.id_producto));
         break;
       case 'populares':
-        // Simular productos populares (en una app real vendría del backend)
-        products = products.slice(0, 2);
+        // Simular productos populares (ordenar por stock descendente)
+        products = [...products].sort((a, b) => b.stock - a.stock).slice(0, 4);
         break;
       case 'nuevos':
-        // Simular productos nuevos
-        products = products.slice(-2);
+        // Productos más recientes
+        products = [...products].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 4);
+        break;
+      case 'precio_bajo':
+        products = [...products].sort((a, b) => parseFloat(a.precio) - parseFloat(b.precio));
+        break;
+      case 'precio_alto':
+        products = [...products].sort((a, b) => parseFloat(b.precio) - parseFloat(a.precio));
         break;
       default:
         break;
@@ -228,7 +159,37 @@ export default function Products() {
   };
 
   const filteredProducts = getFilteredProducts();
-  const totalProducts = Object.values(productsData).flat().length;
+  const totalProducts = categoryProducts.reduce((total, item) => total + item.products.length, 0);
+
+  // Manejar carga y errores
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-amber-400 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Cargando productos...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-red-500 text-6xl mb-4">⚠️</div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Error al cargar</h2> 
+          <p className="text-gray-600 mb-4">{error}</p>
+          <button 
+            onClick={() => window.location.reload()}
+            className="bg-amber-400 text-gray-900 px-6 py-2 rounded-lg hover:bg-amber-500 transition"
+          >
+            Reintentar
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -439,30 +400,39 @@ export default function Products() {
             
             {/* Navegación hexagonal */}
             <div className="flex flex-wrap justify-center gap-4 mb-8">
-              {categories.map((category) => (
-                <button
-                  key={category.id}
-                  onClick={() => setActiveCategory(category.id)}
-                  className={`relative group transition-all duration-300 transform hover:scale-105 ${
-                    activeCategory === category.id ? 'scale-105' : ''
-                  }`}
-                >
-                  <div className="relative">
-                    <HexagonButton 
-                      color={activeCategory === category.id ? category.color : '#E5E7EB'}
-                      size={100}
-                    />
-                    <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      <span className="text-2xl mb-1">{category.icon}</span>
-                      <span className={`text-xs font-medium text-center px-2 ${
-                        activeCategory === category.id ? 'text-gray-900' : 'text-gray-600'
-                      }`}>
-                        {category.name}
-                      </span>
+              {categories.map((category, index) => {
+                // Colores predefinidos que se asignan secuencialmente
+                const colors = ['#F8F32B', '#558C8C', '#C06E52', '#FA9500', '#8B5CF6', '#EF4444'];
+                const icons = ['🍯', '🌟', '🧴', '🥄', '💎', '🌿'];
+                
+                return (
+                  <button
+                    key={category.id}
+                    onClick={() => setActiveCategory(category.id)}
+                    className={`relative group transition-all duration-300 transform hover:scale-105 ${
+                      activeCategory === category.id ? 'scale-105' : ''
+                    }`}
+                  >
+                    <div className="relative">
+                      <HexagonButton 
+                        color={activeCategory === category.id ? colors[index % colors.length] : '#E5E7EB'}
+                        size={100}
+                      />
+                      <div className="absolute inset-0 flex flex-col items-center justify-center">
+                        <span className="text-2xl mb-1">{icons[index % icons.length]}</span>
+                        <span className={`text-xs font-medium text-center px-2 ${
+                          activeCategory === category.id ? 'text-gray-900' : 'text-gray-600'
+                        }`}>
+                          {category.name}
+                        </span>
+                        <span className="text-xs text-gray-500 mt-1">
+                          ({category.productsCount})
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                </button>
-              ))}
+                  </button>
+                );
+              })}
             </div>
           </div>
         </section>
@@ -475,10 +445,10 @@ export default function Products() {
             
             <div className="mb-8">
               <h3 className="text-2xl font-bold mb-2" style={{ color: '#39393A' }}>
-                {categories.find(cat => cat.id === activeCategory)?.name}
+                {categories.find(cat => cat.id === activeCategory)?.name || 'Productos'}
               </h3>
               <p className="text-gray-600 mb-6">
-                Descubre nuestra selección cuidadosamente curada de {categories.find(cat => cat.id === activeCategory)?.name.toLowerCase()}
+                Descubre nuestra selección cuidadosamente curada de {(categories.find(cat => cat.id === activeCategory)?.name || 'productos').toLowerCase()}
               </p>
               
               {/* Búsqueda y filtros */}
@@ -520,16 +490,48 @@ export default function Products() {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {filteredProducts.map((product) => (
-                  <ProductCard 
-                    key={product.id} 
-                    product={product} 
-                    isFavorite={favorites.includes(product.id)}
-                    onToggleFavorite={() => toggleFavorite(product.id)}
-                    onViewDetails={() => openProductModal(product)}
-                    categoryColor={categories.find(cat => cat.id === activeCategory)?.color}
-                  />
-                ))}
+                {filteredProducts.map((product, index) => {
+                  const colors = ['#F8F32B', '#558C8C', '#C06E52', '#FA9500', '#8B5CF6', '#EF4444'];
+                  return (
+                    <ProductCard 
+                      key={product.id_producto} 
+                      product={{
+                        id: product.id_producto,
+                        name: product.nombre,
+                        description: product.descripcion,
+                        image: product.imagen_url_completa || "/api/placeholder/300/250",
+                        price: `$${parseFloat(product.precio).toFixed(2)}`,
+                        stock: product.stock,
+                        category: product.categoria?.nombre,
+                        characteristics: [
+                          `Stock: ${product.stock} unidades`,
+                          `Categoría: ${product.categoria?.nombre}`,
+                          `Precio: $${parseFloat(product.precio).toFixed(2)}`
+                        ],
+                        benefits: product.descripcion
+                      }}
+                      isFavorite={favorites.includes(product.id_producto)}
+                      onToggleFavorite={() => toggleFavorite(product.id_producto)}
+                      onViewDetails={() => openProductModal({
+                        id: product.id_producto,
+                        name: product.nombre,
+                        description: product.descripcion,
+                        image: product.imagen_url_completa || "/api/placeholder/300/250",
+                        price: `$${parseFloat(product.precio).toFixed(2)}`,
+                        stock: product.stock,
+                        category: product.categoria?.nombre,
+                        characteristics: [
+                          `Stock: ${product.stock} unidades`,
+                          `Categoría: ${product.categoria?.nombre}`,
+                          `Precio: $${parseFloat(product.precio).toFixed(2)}`,
+                          `Creado: ${new Date(product.created_at).toLocaleDateString()}`
+                        ],
+                        benefits: product.descripcion
+                      })}
+                      categoryColor={colors[index % colors.length]}
+                    />
+                  );
+                })}
               </div>
             )}
           </div>
