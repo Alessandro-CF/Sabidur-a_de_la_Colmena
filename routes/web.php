@@ -27,6 +27,11 @@ Route::get('/configuracion', function () {
     return Inertia::render('Profile/Settings');
 })->name('settings');
 
+// Ruta de productos
+Route::get('/productos', function () {
+    return Inertia::render('Products/Products');
+})->name('products');
+
 // Dashboard administrativo - Solo para usuarios admin
 Route::get('/dashboard', function () {
     return Inertia::render('Dashboard/Dashboard');

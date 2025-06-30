@@ -5,7 +5,17 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\DashboardController;
 use App\Http\Controllers\Api\V1\ProductController;
+use App\Http\Controllers\Api\V1\PublicProductController;
 use App\Http\Controllers\Api\V1\UserController;
+
+// Rutas públicas (sin autenticación)
+Route::prefix('v1/public')->group(function () {
+    Route::get('categories', [PublicProductController::class, 'getCategories']);
+    Route::get('products', [PublicProductController::class, 'getProducts']);
+    Route::get('products/by-category', [PublicProductController::class, 'getProductsByCategory']);
+    Route::get('products/featured', [PublicProductController::class, 'getFeaturedProducts']);
+    Route::get('products/{id}', [PublicProductController::class, 'getProduct']);
+});
 
 // Rutas de autenticación
 Route::prefix('v1/auth')->group(function () {
