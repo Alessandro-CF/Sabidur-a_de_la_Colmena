@@ -160,7 +160,7 @@ export default function Home() {
             {/* Texto principal */}
             <div className="w-full md:w-1/2 mb-12 md:mb-0 z-10">
               <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-                Bienvenido a<br/>
+                Bienvenido a:<br/>
                 <span style={{ color: '#C06E52' }}>Sabiduría de la Colmena</span>
               </h1>
               <p className="text-lg md:text-xl mb-8 text-gray-700">
