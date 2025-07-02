@@ -3,14 +3,6 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PublicacionController;
-// use App\Http\Controllers\ProductoController;
-// use App\Http\Controllers\PedidoController;
-// use App\Http\Controllers\DetallePedidoController;
-// use App\Http\Controllers\ConsultaController;
-// use App\Http\Controllers\CategoriaController;
-// use App\Http\Controllers\CategoriaArticuloController;
-// use App\Http\Controllers\AsesoriaController;
-// use App\Http\Controllers\ArticuloController;
 use App\Http\Controllers\ApiTokenController;
 
 // --- Rutas API versionadas ---
@@ -28,20 +20,15 @@ Route::prefix('v1')->group(function () {
     });
 
     // --- Rutas públicas (comunidad) ---
-    // Productos
-    // Route::get('/productos', [ProductoController::class, 'indexApi']);
-    // Route::get('/productos/{producto}', [ProductoController::class, 'showApi']);
-    // Categorías
-    // Route::get('/categorias', [CategoriaController::class, 'indexApi']);
-    // Route::get('/categorias/{categoria}', [CategoriaController::class, 'showApi']);
-
-    // Publicaciones (comunidad)
-    Route::get('/publicaciones', [PublicacionController::class, 'indexApi']);
-    Route::get('/publicaciones/{publicacion}', [PublicacionController::class, 'showApi']);
+    Route::prefix('comunidad')->group(function () {
+        // Rutas de publicaciones públicas
+        Route::get('/publicaciones', [PublicacionController::class, 'indexApi']);
+        Route::get('/publicaciones/{publicacion}', [PublicacionController::class, 'showApi']);
+    });
 
     // --- Rutas protegidas (requieren autenticación Sanctum, solo comunidad) ---
-    Route::middleware('auth:sanctum')->group(function () {
-        // Publicaciones (comunidad)
+    Route::middleware('auth:sanctum')->prefix('comunidad')->group(function () {
+        // Publicaciones
         Route::post('/publicaciones', [PublicacionController::class, 'storeApi']);
         Route::put('/publicaciones/{publicacion}', [PublicacionController::class, 'updateApi']);
         Route::delete('/publicaciones/{publicacion}', [PublicacionController::class, 'destroyApi']);
@@ -50,22 +37,10 @@ Route::prefix('v1')->group(function () {
         Route::get('/publicaciones/usuario/mis-publicaciones', [PublicacionController::class, 'misPublicacionesApi']);
         Route::get('/publicaciones/usuario/guardados', [PublicacionController::class, 'guardadosApi']);
 
-        // Notificaciones (comunidad)
+        // Notificaciones
         Route::get('/notificaciones', [PublicacionController::class, 'notificacionesApi']);
         Route::get('/notificaciones/count', [PublicacionController::class, 'contarNotificacionesSinLeerApi']);
         Route::post('/notificaciones/{notificacion}/leer', [PublicacionController::class, 'leerNotificacionApi']);
         Route::post('/notificaciones/leer-todas', [PublicacionController::class, 'leerTodasNotificacionesApi']);
-
-        // Pedidos y detalle-pedidos
-        // Route::apiResource('pedidos', PedidoController::class);
-        // Route::apiResource('detalle-pedidos', DetallePedidoController::class);
-
-        // Consultas y asesorías
-        // Route::apiResource('consultas', ConsultaController::class);
-        // Route::apiResource('asesorias', AsesoriaController::class);
-
-        // Artículos y categorías de artículos
-        // Route::apiResource('articulos', ArticuloController::class);
-        // Route::apiResource('categoria-articulos', CategoriaArticuloController::class);
     });
 });

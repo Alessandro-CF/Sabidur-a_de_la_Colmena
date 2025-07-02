@@ -19,8 +19,8 @@ The API uses Laravel Sanctum for authentication. To authenticate:
    ```
 
 3. To revoke tokens:
-   - All tokens: DELETE `/api/tokens/revoke-all`
-   - Specific token: DELETE `/api/tokens/revoke/{tokenId}`
+   - All tokens: DELETE `/api/v1/tokens/revoke-all`
+   - Specific token: DELETE `/api/v1/tokens/revoke/{tokenId}`
 
 ## Public Endpoints
 
@@ -28,15 +28,8 @@ These endpoints don't require authentication:
 
 ### Publicaciones (Posts)
 
-- GET `/api/v1/publicaciones` - List all posts
-- GET `/api/v1/publicaciones/{id}` - Get a specific post
-
-### Productos (Products)
-
-- GET `/api/v1/productos` - List all products
-- GET `/api/v1/productos/{id}` - Get a specific product
-
-### Categorías (Categories)
+- GET `/api/v1/comunidad/publicaciones` - List all posts
+- GET `/api/v1/comunidad/publicaciones/{id}` - Get a specific post
 
 - GET `/api/v1/categorias` - List all categories
 - GET `/api/v1/categorias/{id}` - Get a specific category
@@ -47,7 +40,7 @@ These endpoints require authentication:
 
 ### Publicaciones (Posts)
 
-- POST `/api/v1/publicaciones` - Create a new post
+- POST `/api/v1/comunidad/publicaciones` - Create a new post
   ```json
   {
     "titulo": "Post title",
@@ -56,7 +49,7 @@ These endpoints require authentication:
   }
   ```
 
-- PUT `/api/v1/publicaciones/{id}` - Update a post
+- PUT `/api/v1/comunidad/publicaciones/{id}` - Update a post
   ```json
   {
     "titulo": "Updated title",
@@ -65,36 +58,19 @@ These endpoints require authentication:
   }
   ```
 
-- DELETE `/api/v1/publicaciones/{id}` - Delete a post
+- DELETE `/api/v1/comunidad/publicaciones/{id}` - Delete a post
 
-- POST `/api/v1/publicaciones/{id}/like` - Like/unlike a post
-- POST `/api/v1/publicaciones/{id}/guardar` - Save/unsave a post
-- GET `/api/v1/publicaciones/usuario/mis-publicaciones` - Get user's posts
-- GET `/api/v1/publicaciones/usuario/guardados` - Get user's saved posts
+- POST `/api/v1/comunidad/publicaciones/{id}/like` - Like/unlike a post
+- POST `/api/v1/comunidad/publicaciones/{id}/guardar` - Save/unsave a post
+- GET `/api/v1/comunidad/publicaciones/usuario/mis-publicaciones` - Get user's posts
+- GET `/api/v1/comunidad/publicaciones/usuario/guardados` - Get user's saved posts
 
 ### Notificaciones (Notifications)
 
-- GET `/api/v1/notificaciones` - Get all notifications
-- GET `/api/v1/notificaciones/count` - Count unread notifications
-- POST `/api/v1/notificaciones/{id}/leer` - Mark notification as read
-- POST `/api/v1/notificaciones/leer-todas` - Mark all notifications as read
-
-### Other Resources
-
-The following resources are available as standard REST endpoints with the following operations:
-- GET (index) - List all resources
-- GET (show) - Get a specific resource
-- POST - Create a new resource
-- PUT/PATCH - Update a resource
-- DELETE - Delete a resource
-
-Available resources:
-- `/api/v1/pedidos`
-- `/api/v1/detalle-pedidos`
-- `/api/v1/consultas`
-- `/api/v1/asesorias`
-- `/api/v1/articulos`
-- `/api/v1/categoria-articulos`
+- GET `/api/v1/comunidad/notificaciones` - Get all notifications
+- GET `/api/v1/comunidad/notificaciones/count` - Count unread notifications
+- POST `/api/v1/comunidad/notificaciones/{id}/leer` - Mark notification as read
+- POST `/api/v1/comunidad/notificaciones/leer-todas` - Mark all notifications as read
 
 ## Response Format
 
