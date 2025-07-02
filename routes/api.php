@@ -24,6 +24,8 @@ Route::prefix('v1')->group(function () {
         // Rutas de publicaciones públicas
         Route::get('/publicaciones', [PublicacionController::class, 'indexApi']);
         Route::get('/publicaciones/{publicacion}', [PublicacionController::class, 'showApi']);
+        // Ruta para obtener comentarios de una publicación
+        Route::get('/publicaciones/{publicacion}/comentarios', [PublicacionController::class, 'comentariosApi']);
     });
 
     // --- Rutas protegidas (requieren autenticación Sanctum, solo comunidad) ---
@@ -36,6 +38,10 @@ Route::prefix('v1')->group(function () {
         Route::post('/publicaciones/{publicacion}/guardar', [PublicacionController::class, 'guardarApi']);
         Route::get('/publicaciones/usuario/mis-publicaciones', [PublicacionController::class, 'misPublicacionesApi']);
         Route::get('/publicaciones/usuario/guardados', [PublicacionController::class, 'guardadosApi']);
+        
+        // Comentarios
+        Route::post('/publicaciones/{publicacion}/comentar', [PublicacionController::class, 'comentarApi']);
+        Route::delete('/comentarios/{comentario}', [PublicacionController::class, 'eliminarComentarioApi']);
 
         // Notificaciones
         Route::get('/notificaciones', [PublicacionController::class, 'notificacionesApi']);

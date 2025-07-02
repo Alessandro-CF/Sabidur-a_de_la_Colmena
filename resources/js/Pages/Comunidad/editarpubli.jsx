@@ -7,12 +7,11 @@ export default function EditarPublicacion({ publicacion }) {
   const { data, setData, post, processing, errors } = useForm({
     titulo: publicacion.titulo,
     contenido: publicacion.contenido,
-    imagen: null
+    imagen_url: publicacion.imagen || '' // Cambiado a imagen_url
   });
   
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
-  const [imagenPreview, setImagenPreview] = useState(publicacion.imagen);
   
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -28,7 +27,6 @@ export default function EditarPublicacion({ publicacion }) {
     
     post(route('comunidad.update', { publicacion: publicacion.id }), {
       preserveScroll: true,
-      forceFormData: true,
       onSuccess: () => {
         setSuccessMessage('¡Publicación actualizada con éxito!');
         // Redirect after short delay to show success message
@@ -41,8 +39,8 @@ export default function EditarPublicacion({ publicacion }) {
           setErrorMessage(errors.titulo);
         } else if (errors.contenido) {
           setErrorMessage(errors.contenido);
-        } else if (errors.imagen) {
-          setErrorMessage(errors.imagen);
+        } else if (errors.imagen_url) {
+          setErrorMessage(errors.imagen_url);
         } else {
           setErrorMessage('Ocurrió un error al actualizar la publicación');
         }
@@ -175,52 +173,37 @@ export default function EditarPublicacion({ publicacion }) {
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
                     <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
                   </svg>
-                  Imagen <span className="text-gray-500 font-normal ml-1">(opcional)</span>
+                  URL de Imagen <span className="text-gray-500 font-normal ml-1">(opcional)</span>
                 </label>
                 
-                {imagenPreview && (
-                  <div className="mb-4 text-center">
-                    <p className="text-sm text-gray-500 mb-2">Imagen actual:</p>
-                    <img 
-                      src={imagenPreview} 
-                      alt="Vista previa" 
-                      className="h-32 object-contain mx-auto border border-amber-200 rounded-lg p-2 bg-white"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">Para cambiar la imagen, selecciona una nueva abajo</p>
-                  </div>
-                )}
-                
-                <div className="flex items-center justify-center w-full">
-                  <label className="flex flex-col w-full h-32 border-2 border-amber-300 border-dashed rounded-lg cursor-pointer bg-white hover:bg-amber-50 transition-colors">
-                    <div className="flex flex-col items-center justify-center pt-7">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="w-12 h-12 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
-                      <p className="pt-1 text-sm tracking-wider text-gray-600 group-hover:text-gray-600">
-                        {data.imagen ? data.imagen.name : 'Selecciona una nueva imagen'}
-                      </p>
+                <div className="flex flex-col w-full">
+                  <input
+                    type="url"
+                    className="w-full border-2 border-amber-200 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#FA9500] focus:border-[#FA9500] transition-all"
+                    placeholder="https://ejemplo.com/imagen.jpg"
+                    value={data.imagen_url}
+                    onChange={e => setData('imagen_url', e.target.value)}
+                    maxLength={500}
+                  />
+                  
+                  {data.imagen_url && (
+                    <div className="mt-4 border border-amber-200 rounded-lg p-2 bg-white">
+                      <p className="text-sm text-amber-600 mb-2">Vista previa:</p>
+                      <img 
+                        src={data.imagen_url} 
+                        alt="Vista previa" 
+                        className="max-h-40 mx-auto object-contain rounded" 
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src = "/images/colmena_logo.png";
+                          setErrorMessage("La URL de la imagen no es válida o no se puede cargar");
+                        }}
+                      />
                     </div>
-                    <input 
-                      type="file" 
-                      accept="image/*" 
-                      className="opacity-0" 
-                      onChange={e => {
-                        const file = e.target.files[0];
-                        setData('imagen', file);
-                        if (file) {
-                          // Crear URL para vista previa
-                          const reader = new FileReader();
-                          reader.onload = (e) => {
-                            setImagenPreview(e.target.result);
-                          };
-                          reader.readAsDataURL(file);
-                        }
-                      }}
-                    />
-                  </label>
+                  )}
                 </div>
                 <p className="text-xs text-gray-500 mt-2 text-center">
-                  Formatos soportados: JPG, PNG, GIF. Tamaño máximo: 2MB
+                  Ingresa la URL completa de una imagen (debe comenzar con http:// o https://)
                 </p>
               </div>
               

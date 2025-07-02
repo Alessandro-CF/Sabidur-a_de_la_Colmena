@@ -53,7 +53,7 @@ use Illuminate\Http\JsonResponse;
  * - POST   /api/v1/comunidad/notificaciones/{id}/leer               - Marca notificación como leída
  * - POST   /api/v1/comunidad/notificaciones/leer-todas              - Marca todas como leídas
  */
-class PublicacionController extends Controller
+class PublicacionController_new extends Controller
 {
     /**************************************
      * HELPERS Y MÉTODOS COMUNES
@@ -905,7 +905,7 @@ class PublicacionController extends Controller
             $publicacion->save();
             
             // Guardar like en la tabla
-            DB::table('publicacion_like')->insert([
+            DB::table('publicacion_likes')->insert([
                 'publicacion_id' => $publicacion->id,
                 'user_identifier' => $userIdentifier,
                 'created_at' => now(),
@@ -917,7 +917,7 @@ class PublicacionController extends Controller
             $notificacion->tipo = 'like';
             $notificacion->mensaje = 'A alguien le gustó tu publicación "' . Str::limit($publicacion->titulo, 30) . '"';
             $notificacion->link = '/comunidad/publicacion/' . $publicacion->id;
-            $notificacion->leido = false;
+            $notificacion->leida = false;
             $notificacion->save();
             
             return response()->json([
@@ -933,7 +933,7 @@ class PublicacionController extends Controller
             $publicacion->save();
             
             // Eliminar like de la tabla
-            DB::table('publicacion_like')
+            DB::table('publicacion_likes')
                 ->where('publicacion_id', $publicacion->id)
                 ->where('user_identifier', $userIdentifier)
                 ->delete();
@@ -960,7 +960,7 @@ class PublicacionController extends Controller
         // Verificar si ya está guardado
         if (!$this->hasGuardado($publicacion->id, $userIdentifier)) {
             // Guardar en la tabla de guardados
-            DB::table('publicacion_guardado')->insert([
+            DB::table('publicacion_guardados')->insert([
                 'publicacion_id' => $publicacion->id,
                 'user_identifier' => $userIdentifier,
                 'created_at' => now(),
@@ -973,7 +973,7 @@ class PublicacionController extends Controller
             ], 200);
         } else {
             // Ya está guardado, entonces quitar de guardados
-            DB::table('publicacion_guardado')
+            DB::table('publicacion_guardados')
                 ->where('publicacion_id', $publicacion->id)
                 ->where('user_identifier', $userIdentifier)
                 ->delete();
@@ -996,7 +996,7 @@ class PublicacionController extends Controller
         $userIdentifier = $this->getUserIdentifier();
         
         // Obtener IDs de publicaciones guardadas
-        $guardadosIds = DB::table('publicacion_guardado')
+        $guardadosIds = DB::table('publicacion_guardados')
             ->where('user_identifier', $userIdentifier)
             ->pluck('publicacion_id');
             
@@ -1165,7 +1165,20 @@ class PublicacionController extends Controller
         // Filtrar por user_identifier para obtener solo las notificaciones del usuario actual
         $notificaciones = Notificacion::where('user_identifier', $userIdentifier)
             ->orderBy('created_at', 'desc')
-            ->get();
+            ->get()
+            ->map(function($notif) {
+                return [
+                    'id' => $notif->id,
+                    'titulo' => $notif->titulo,
+                    'mensaje' => $notif->mensaje,
+                    'tipo' => $notif->tipo,
+                    'leida' => $notif->leida,
+                    'enlace' => $notif->enlace,
+                    'fecha' => $notif->created_at->diffForHumans(),
+                    'fecha_completa' => $notif->created_at->format('d/m/Y H:i'),
+                    'publicacion_id' => $notif->publicacion_id
+                ];
+            });
         
         return response()->json([
             'data' => $notificaciones,
@@ -1184,7 +1197,7 @@ class PublicacionController extends Controller
         $userIdentifier = $this->getUserIdentifier();
         
         // Filtrar por user_identifier para obtener solo las notificaciones del usuario actual
-        $count = Notificacion::where('leido', false)
+        $count = Notificacion::where('leida', false)
             ->where('user_identifier', $userIdentifier)
             ->count();
         
@@ -1212,7 +1225,7 @@ class PublicacionController extends Controller
             ], 403);
         }
         
-        $notificacion->leido = true;
+        $notificacion->leida = true;
         $notificacion->save();
         
         return response()->json([
@@ -1230,9 +1243,9 @@ class PublicacionController extends Controller
     {
         $userIdentifier = $this->getUserIdentifier();
         
-        Notificacion::where('leido', false)
+        Notificacion::where('leida', false)
             ->where('user_identifier', $userIdentifier)
-            ->update(['leido' => true]);
+            ->update(['leida' => true]);
         
         return response()->json([
             'message' => 'Todas las notificaciones marcadas como leídas'

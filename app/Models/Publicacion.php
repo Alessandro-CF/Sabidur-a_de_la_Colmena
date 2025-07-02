@@ -35,4 +35,12 @@ class Publicacion extends Model
     {
         return $this->hasMany(PublicacionGuardado::class);
     }
+    
+    /**
+     * Obtiene los comentarios de esta publicación
+     */
+    public function comentarios(): HasMany
+    {
+        return $this->hasMany(Comentario::class);
+    }
 }

@@ -58,4 +58,8 @@ Route::prefix('comunidad')->name('comunidad.')->group(function () {
     // Acciones de publicaciones
     Route::post('/like/{publicacion}', [PublicacionController::class, 'like'])->name('like');
     Route::post('/guardar/{publicacion}', [PublicacionController::class, 'guardar'])->name('guardar');
+    
+    // Rutas de comentarios
+    Route::post('/comentar/{publicacion}', [PublicacionController::class, 'comentar'])->name('comentar');
+    Route::delete('/comentario/{comentario}', [PublicacionController::class, 'eliminarComentario'])->name('eliminar-comentario');
 });

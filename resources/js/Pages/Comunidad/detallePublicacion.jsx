@@ -1,10 +1,43 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from '@/Components/Navbar';
 import Footer from '@/Components/Footer';
-import { Link, router } from '@inertiajs/react';
+import { Link, router, useForm } from '@inertiajs/react';
 
-export default function DetallePublicacion({ publicacion }) {
+export default function DetallePublicacion({ publicacion, comentarios, flash }) {
     const [confirmDelete, setConfirmDelete] = useState(false);
+    const [notification, setNotification] = useState(null);
+    
+    // Mostrar notificaciones de flash
+    useEffect(() => {
+        if (flash && (flash.success || flash.error)) {
+            setNotification({
+                type: flash.success ? 'success' : 'error',
+                message: flash.success || flash.error
+            });
+            
+            // Auto-cerrar la notificación después de 5 segundos
+            const timer = setTimeout(() => {
+                setNotification(null);
+            }, 5000);
+            
+            return () => clearTimeout(timer);
+        }
+    }, [flash]);
+    
+    // Formulario para añadir comentarios
+    const { data, setData, post, processing, reset, errors } = useForm({
+        contenido: '',
+    });
+    
+    // Enviar comentario
+    const handleSubmitComentario = (e) => {
+        e.preventDefault();
+        post(route('comunidad.comentar', { publicacion: publicacion.id }), {
+            onSuccess: () => {
+                reset('contenido');
+            }
+        });
+    };
     
     const handleLike = (id) => {
         router.post(route('comunidad.like', { publicacion: id }), {}, {
@@ -34,6 +67,33 @@ export default function DetallePublicacion({ publicacion }) {
         <>
             <Navbar />
             <div className="bg-[#F7FAFC] min-h-screen py-8">
+                {notification && (
+                    <div className={`fixed top-20 right-4 p-4 rounded-lg shadow-lg max-w-md z-50 ${
+                        notification.type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                    }`}>
+                        <div className="flex items-center">
+                            {notification.type === 'success' ? (
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                </svg>
+                            ) : (
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            )}
+                            <p>{notification.message}</p>
+                            <button 
+                                onClick={() => setNotification(null)} 
+                                className="ml-auto text-gray-500 hover:text-gray-700"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                )}
+                
                 <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-lg overflow-hidden">
                     <div className="p-8">
                         <div className="flex justify-between items-center mb-6">
@@ -142,11 +202,87 @@ export default function DetallePublicacion({ publicacion }) {
                         </div>
                         
                         <div className="border-t pt-6 mt-8">
-                            <h3 className="font-semibold text-lg mb-4">Comentarios</h3>
-                            <div className="bg-gray-50 p-4 rounded-lg text-center text-gray-500">
-                                No hay comentarios aún. ¡Sé el primero en comentar!
-                            </div>
-                            {/* Formulario de comentarios (para futura implementación) */}
+                            <h3 className="font-semibold text-lg mb-4">Comentarios ({comentarios.length})</h3>
+                            
+                            {comentarios.length === 0 ? (
+                                <div className="bg-gray-50 p-4 rounded-lg text-center text-gray-500 mb-4">
+                                    No hay comentarios aún. ¡Sé el primero en comentar!
+                                </div>
+                            ) : (
+                                <div className="space-y-4 mb-6">
+                                    {comentarios.map((comentario) => (
+                                        <div key={comentario.id} className="bg-gray-50 p-4 rounded-lg">
+                                            <div className="flex justify-between items-start mb-2">
+                                                <div>
+                                                    <span className="font-semibold">{comentario.usuario}</span>
+                                                    <span className="text-gray-500 text-sm ml-2">{comentario.fecha_relativa}</span>
+                                                </div>
+                                                
+                                                {comentario.es_propietario && (
+                                                    <button
+                                                        onClick={() => router.delete(route('comunidad.eliminar-comentario', { comentario: comentario.id }), {
+                                                            preserveScroll: true
+                                                        })}
+                                                        className="text-red-500 hover:text-red-700"
+                                                    >
+                                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                                            <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                                                        </svg>
+                                                    </button>
+                                                )}
+                                            </div>
+                                            <p className="text-gray-700">{comentario.contenido}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                            
+                            {/* Formulario para añadir comentario */}
+                            <form onSubmit={handleSubmitComentario} className="flex flex-col gap-4 mb-8">
+                                <div className="flex-1">
+                                    <textarea
+                                        value={data.contenido}
+                                        onChange={(e) => setData('contenido', e.target.value)}
+                                        className={`w-full p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FA9500] transition ${
+                                            errors.contenido ? 'border-red-500' : 'border-gray-300'
+                                        }`}
+                                        rows="3"
+                                        placeholder="Escribe tu comentario..."
+                                    />
+                                    {errors.contenido && (
+                                        <p className="text-red-500 text-sm mt-1">{errors.contenido}</p>
+                                    )}
+                                </div>
+                                <div className="flex justify-end">
+                                    <button
+                                        type="submit"
+                                        disabled={processing}
+                                        className="bg-[#FA9500] text-white px-4 py-2 rounded-lg hover:bg-[#fb8c00] transition flex items-center gap-2"
+                                    >
+                                        {processing && (
+                                            <svg
+                                                aria-hidden="true"
+                                                className="w-4 h-4 mr-3 animate-spin text-white"
+                                                viewBox="0 0 100 101"
+                                                fill="none"
+                                            >
+                                                <path
+                                                    d="M100 50.5C100 78.404 78.404 100 50.5 100S1 78.404 1 50.5 22.596 1 50.5 1 100 22.596 100 50.5z"
+                                                    fill="#FA9500"
+                                                />
+                                                <path
+                                                    d="M93.971 50.5c0-23.703-19.268-42.971-42.971-42.971S8.029 26.797 8.029 50.5 27.297 93.471 50.5 93.471 93.971 74.203 93.971 50.5z"
+                                                    strokeWidth={2}
+                                                    stroke="#fff"
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                />
+                                            </svg>
+                                        )}
+                                        Comentar
+                                    </button>
+                                </div>
+                            </form>
                         </div>
                     </div>
                 </div>
