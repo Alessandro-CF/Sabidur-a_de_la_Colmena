@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\InscripcionController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -31,6 +32,12 @@ Route::get('/configuracion', function () {
 Route::get('/productos', function () {
     return Inertia::render('Products/Products');
 })->name('products');
+
+Route::get('/capacitaciones', function () {
+    return Inertia::render('Capacitaciones/Capacitaciones');
+})->name('capacitaciones');
+
+Route::post('/inscripciones', [InscripcionController::class, 'store'])->name('inscripciones.store');
 
 // Dashboard administrativo - Solo para usuarios admin
 Route::get('/dashboard', function () {
