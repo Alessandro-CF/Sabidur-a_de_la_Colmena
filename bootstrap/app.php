@@ -26,13 +26,22 @@ return Application::configure(basePath: dirname(__DIR__))
             'api.throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
             'role' => \App\Http\Middleware\RoleMiddleware::class,
             'isAdmin' => \App\Http\Middleware\IsAdmin::class,
+            'force.https' => \App\Http\Middleware\ForceHttps::class,
+        ]);
+
+        // Middleware global para web (incluye ForceHttps)
+        $middleware->web(prepend: [
+            \App\Http\Middleware\TrustProxies::class,
+            'force.https',
         ]);
 
         // Middleware global para API
         $middleware->api(prepend: [
+            \App\Http\Middleware\TrustProxies::class,
             'custom.cors',
+            'force.https',
         ]);
-        
+
         $middleware->api(append: [
             'api.throttle:60,1',
         ]);
