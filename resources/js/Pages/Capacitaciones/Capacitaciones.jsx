@@ -82,7 +82,7 @@ export default function Capacitaciones() {
       id: 3,
       titulo: "Salud y Enfermedades de las Abejas",
       descripcion: "Identifica enfermedades comunes y aprende a mantener colmenas saludables mediante buenas prácticas.",
-      duracion: "5 semanas",
+      duracion: "4 semanas",
       imagen: "https://organicosanita.com/wp-content/uploads/2024/05/enfermedades-de-las-abejas.webp"
     },
   ];
