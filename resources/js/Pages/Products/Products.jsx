@@ -550,7 +550,7 @@ export default function Products() {
                 {/* Navegación de categorías */}
                 <section
                     className="py-8"
-                    style={{ backgroundColor: "#EFF7FF" }}
+                    style={{ backgroundColor: "#FFFBE6" }}
                 >
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="text-center mb-8">
