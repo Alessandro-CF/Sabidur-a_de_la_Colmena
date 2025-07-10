@@ -40,9 +40,9 @@ export const ProductModal = ({ product, onClose, isFavorite, onToggleFavorite })
         <div className="relative">
           {/* Header del modal */}
           <div className="flex items-center justify-between p-4 border-b">
-            <h2 className="text-xl font-semibold" style={{ color: '#39393A' }}>
+            <h1 className="text-xl font-semibold" style={{ color: '#FA9500' }}>
               Detalles del Producto
-            </h2>
+            </h1>
             <div className="flex items-center space-x-2">
               <button
                 onClick={handleShare}
