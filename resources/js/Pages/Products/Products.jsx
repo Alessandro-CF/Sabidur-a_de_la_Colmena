@@ -417,7 +417,7 @@ export default function Products() {
                             <button
                                 className="px-8 py-4 rounded-lg font-medium text-lg transition transform hover:scale-105"
                                 style={{
-                                    backgroundColor: "#FA9500",
+                                    backgroundColor: "blue",
                                     color: "#EFF7FF",
                                 }}
                                 onClick={() =>
