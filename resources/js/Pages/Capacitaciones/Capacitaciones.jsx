@@ -192,8 +192,8 @@ export default function Capacitaciones() {
 
       {/* Contenido principal */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <h1 className="text-4xl font-bold mb-8" style={{ color: '#1E3A8A' }}>
-          Capacitaciones Disponibles en cusco
+        <h1 className="text-4xl font-bold mb-8" style={{ color: '#b2c222ff' }}>
+          Capacitaciones Disponible
         </h1>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
